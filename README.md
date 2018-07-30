@@ -1,39 +1,89 @@
-# lock4j-spring-boot-starter
+<p align="center">
 
-#### 项目介绍
-{**以下是码云平台说明，您可以替换为您的项目简介**
-码云是开源中国推出的基于 Git 的代码托管平台（同时支持 SVN）。专为开发者提供稳定、高效、安全的云端软件开发协作平台
-无论是个人、团队、或是企业，都能够用码云实现代码托管、项目管理、协作开发。企业项目请看 [https://gitee.com/enterprises](https://gitee.com/enterprises)}
+<img src="https://s1.ax1x.com/2018/07/29/Pacq2Q.png" alt="Pacq2Q.png" border="0" />
 
-#### 软件架构
-软件架构说明
+</p>
 
+<p align="center">
+	<strong>一种简单的，支持不同方案的高性能分布式锁</strong>
+</p>
 
-#### 安装教程
+<p align="center">
+	<a href="http://mvnrepository.com/artifact/com.baomidou/lock4j-spring-boot-starter" target="_blank">
+        <img src="https://maven-badges.herokuapp.com/maven-central/com.baomidou/lock4j-spring-boot-starter/badge.svg" >
+    </a>
+	<a href="http://www.apache.org/licenses/LICENSE-2.0.html" target="_blank">
+        <img src="http://img.shields.io/:license-apache-brightgreen.svg" >
+    </a>
+	<a>
+        <img src="https://img.shields.io/badge/JDK-1.7+-green.svg" >
+	</a>
+</p>
+<p align="center">
+	QQ群:<a href="https://jq.qq.com/?_wv=1027&k=5tFhLhS" target="_blank">710314529</a>
+</p>
 
-1. xxxx
-2. xxxx
-3. xxxx
+## 简介
 
-#### 使用说明
+lock4j-spring-boot-starter是一个分布式锁组件，其提供了多种不同的支持以满足不同性能和环境的需求。
 
-1. xxxx
-2. xxxx
-3. xxxx
+立志打造一个简单但富有内涵的分布式锁组件。
 
-#### 参与贡献
+## 如何使用
 
-1. Fork 本项目
-2. 新建 Feat_xxx 分支
-3. 提交代码
-4. 新建 Pull Request
+1. 引入相关依赖。
 
+```xml
+<dependency>
+    <groupId>com.baomidou</groupId>
+    <artifactId>lock4j-spring-boot-starter</artifactId>
+    <version>${version}</version>
+</dependency>
 
-#### 码云特技
+<!--为支持多种环境redis不会默认引入，虽然初版只支持原生redisTemplate-->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+```
 
-1. 使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2. 码云官方博客 [blog.gitee.com](https://blog.gitee.com)
-3. 你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解码云上的优秀开源项目
-4. [GVP](https://gitee.com/gvp) 全称是码云最有价值开源项目，是码云综合评定出的优秀开源项目
-5. 码云官方提供的使用手册 [http://git.mydoc.io/](http://git.mydoc.io/)
-6. 码云封面人物是一档用来展示码云会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+2. 配置原生redis信息。
+
+```yaml
+spring:
+  redis:
+    host: 47.100.20.186
+    ...
+```
+
+3. 在需要分布式的地方使用Lock4j注解。
+
+```java
+@Service
+public class DemoService {
+
+    //默认超时3秒，30秒过期
+    @Lock4j
+    public void simple() {
+    	//do something
+    }
+    
+	//完全配置，支持spel
+    @Lock4j(keys = {"#user.id", "#user.name"}, expire = 60000, tryTimeout = 1000)
+    public User customMethod(User user) {
+        return user;
+    }
+
+}
+```
+
+## 计划
+
+1. 支持多种限流IP数组限流，基于用户限流。
+2. 支持数据库级别，Redission, Zookeeper等多种组件。
+
+## 鸣谢
+
+感谢原作者zzh捐赠项目至苞米豆组织，其是此项目的核心开发者，后续也会主导项目的设计。
+
+本项目参考了 https://gitee.com/kekingcn/spring-boot-klock-starter ，其作者还有很多其他优秀项目。
