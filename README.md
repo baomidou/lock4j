@@ -1,6 +1,6 @@
 <p align="center">
 
-<img src="https://s1.ax1x.com/2018/07/29/Pacq2Q.png" alt="Pacq2Q.png" border="0" />
+<img src="https://s1.ax1x.com/2018/07/29/Pacq2Q.png" border="0" />
 
 </p>
 
@@ -9,15 +9,18 @@
 </p>
 
 <p align="center">
-	<a href="http://mvnrepository.com/artifact/com.baomidou/lock4j-spring-boot-starter" target="_blank">
+    <a href="http://mvnrepository.com/artifact/com.baomidou/lock4j-spring-boot-starter" target="_blank">
         <img src="https://maven-badges.herokuapp.com/maven-central/com.baomidou/lock4j-spring-boot-starter/badge.svg" >
     </a>
-	<a href="http://www.apache.org/licenses/LICENSE-2.0.html" target="_blank">
+    <a href="http://www.apache.org/licenses/LICENSE-2.0.html" target="_blank">
         <img src="http://img.shields.io/:license-apache-brightgreen.svg" >
     </a>
-	<a>
+    <a>
         <img src="https://img.shields.io/badge/JDK-1.7+-green.svg" >
-	</a>
+    </a>
+    <a>
+        <img src="https://img.shields.io/badge/springBoot-1.4+_1.5+_2.0+-green.svg" >
+    </a>
 </p>
 <p align="center">
 	QQ群:<a href="https://jq.qq.com/?_wv=1027&k=5tFhLhS" target="_blank">710314529</a>
