@@ -1,5 +1,5 @@
-/**
- * ﻿Copyright © 2018 organization 苞米豆
+/*
+ * Copyright © 2018 organization 苞米豆
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,32 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.baomidou.lock;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.ToString;
 
 /**
- * 分布式锁信息
- *
- * @author zengzh TaoYu
+ * @author zengzh
  * @since 1.0.0
  */
 @Data
-@ToString
 @AllArgsConstructor
 public class LockInfo {
 
     /**
-     * 锁ID UUID
+     * 锁名称
      */
-    private String lockId;
+    private String lockKey;
 
     /**
-     * KEY
+     * 锁值
      */
-    private String key;
+    private String lockValue;
 
     /**
      * 过期时间
@@ -46,13 +43,12 @@ public class LockInfo {
     private Long expire;
 
     /**
-     * 尝试获取锁超时时间
+     * 获取锁超时时间
      */
-    private Long tryTimeout;
+    private Long acquireTimeout;
 
     /**
-     * 尝试获取锁次数
+     * 获取锁次数
      */
-    private int tryCount;
-
+    private int acquireCount = 0;
 }

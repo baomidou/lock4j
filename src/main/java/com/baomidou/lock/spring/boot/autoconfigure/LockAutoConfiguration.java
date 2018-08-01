@@ -16,9 +16,11 @@
 package com.baomidou.lock.spring.boot.autoconfigure;
 
 import com.baomidou.lock.LockExecutor;
+import com.baomidou.lock.LockTemplate;
 import com.baomidou.lock.RedisTemplateLockExecutor;
 import com.baomidou.lock.aop.LockAnnotationAdvisor;
 import com.baomidou.lock.aop.LockInterceptor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -37,10 +39,19 @@ public class LockAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnClass(RedisTemplate.class)
-    public LockExecutor lockExecutor() {
-        return new RedisTemplateLockExecutor();
+    public LockExecutor lockExecutor(RedisTemplate redisTemplate) {
+        RedisTemplateLockExecutor redisTemplateLockExecutor = new RedisTemplateLockExecutor();
+        redisTemplateLockExecutor.setRedisTemplate(redisTemplate);
+        return redisTemplateLockExecutor;
     }
 
+    @Bean
+    @ConditionalOnMissingBean
+    public LockTemplate lockTemplate(LockExecutor lockExecutor){
+        LockTemplate lockTemplate = new LockTemplate();
+        lockTemplate.setLockExecutor(lockExecutor);
+        return lockTemplate;
+    }
     @Bean
     @ConditionalOnMissingBean
     public LockAnnotationAdvisor lockAnnotationAdvisor(LockInterceptor lockInterceptor) {
@@ -49,9 +60,9 @@ public class LockAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public LockInterceptor lockInterceptor(LockExecutor lockExecutor) {
+    public LockInterceptor lockInterceptor(LockTemplate lockTemplate) {
         LockInterceptor lockInterceptor = new LockInterceptor();
-        lockInterceptor.setLockExecutor(lockExecutor);
+        lockInterceptor.setLockTemplate(lockTemplate);
         return lockInterceptor;
     }
 

@@ -15,9 +15,9 @@
  */
 package com.baomidou.lock.aop;
 
-import com.baomidou.lock.LockExecutor;
 import com.baomidou.lock.LockInfo;
 import com.baomidou.lock.LockKeyGenerator;
+import com.baomidou.lock.LockTemplate;
 import com.baomidou.lock.annotation.Lock4j;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +34,7 @@ import org.aopalliance.intercept.MethodInvocation;
 public class LockInterceptor implements MethodInterceptor {
 
     @Setter
-    private LockExecutor lockExecutor;
+    private LockTemplate lockTemplate;
 
     private LockKeyGenerator lockKeyGenerator = new LockKeyGenerator();
 
@@ -44,14 +44,14 @@ public class LockInterceptor implements MethodInterceptor {
         try {
             Lock4j lock4j = invocation.getMethod().getAnnotation(Lock4j.class);
             String keyName = lockKeyGenerator.getKeyName(invocation, lock4j);
-            lockInfo = lockExecutor.tryLock(keyName, lock4j.expire(), lock4j.tryTimeout());
+            lockInfo = lockTemplate.lock(keyName, lock4j.expire(), lock4j.timeout());
             if (null != lockInfo) {
                 return invocation.proceed();
             }
             return null;
         } finally {
             if (null != lockInfo) {
-                lockExecutor.releaseLock(lockInfo);
+                lockTemplate.releaseLock(lockInfo);
             }
         }
     }

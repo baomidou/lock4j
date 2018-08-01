@@ -25,7 +25,7 @@ public class UserService {
         return user;
     }
 
-    @Lock4j(keys = {"#user.id", "#user.name"}, tryTimeout = 5000, expire = 5000)
+    @Lock4j(keys = {"#user.id", "#user.name"}, timeout = 5000, expire = 5000)
     public User method2(User user) {
         System.out.println("执行spel方法2 , 当前线程:" + Thread.currentThread().getName());
         //模拟锁占用

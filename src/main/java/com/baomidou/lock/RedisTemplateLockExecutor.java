@@ -15,13 +15,11 @@
  */
 package com.baomidou.lock;
 
-import com.baomidou.lock.util.LockUtil;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
-import org.springframework.util.Assert;
 
 import java.util.Collections;
 
@@ -37,31 +35,19 @@ public class RedisTemplateLockExecutor implements LockExecutor {
     private static final RedisScript<String> SCRIPT_LOCK = new DefaultRedisScript<>("return redis.call('set',KEYS[1],ARGV[1],'NX','PX',ARGV[2])", String.class);
     private static final RedisScript<String> SCRIPT_UNLOCK = new DefaultRedisScript<>("if redis.call('get',KEYS[1]) == ARGV[1] then return tostring(redis.call('del', KEYS[1])==1) else return 'false' end", String.class);
     private static final String LOCK_SUCCESS = "OK";
-    private static final String PROCESS_ID = LockUtil.getLocalMAC() + LockUtil.getJvmPid();
 
-    @Autowired
+    @Setter
     private RedisTemplate redisTemplate;
 
+
     @Override
-    public LockInfo tryLock(String key, long expire, long timeout) throws Exception {
-        Assert.isTrue(timeout > 0, "tryTimeout must more than 0");
-        long start = System.currentTimeMillis();
-        int tryCount = 0;
-        String lockId = PROCESS_ID + Thread.currentThread().getId();
-        while (System.currentTimeMillis() - start < timeout) {
-            Object lockResult = redisTemplate.execute(SCRIPT_LOCK,
-                    redisTemplate.getStringSerializer(),
-                    redisTemplate.getStringSerializer(),
-                    Collections.singletonList(key),
-                    lockId, String.valueOf(expire));
-            tryCount++;
-            if (LOCK_SUCCESS.equals(lockResult)) {
-                return new LockInfo(lockId, key, expire, timeout, tryCount);
-            }
-            Thread.sleep(50);
-        }
-        log.info("lock failed, try {} times", tryCount);
-        return null;
+    public boolean acquire(String lockKey,String lockValue, long acquireExpire){
+        Object lockResult = redisTemplate.execute(SCRIPT_LOCK,
+                redisTemplate.getStringSerializer(),
+                redisTemplate.getStringSerializer(),
+                Collections.singletonList(lockKey),
+                lockValue, String.valueOf(acquireExpire));
+        return LOCK_SUCCESS.equals(lockResult);
     }
 
 
@@ -70,8 +56,8 @@ public class RedisTemplateLockExecutor implements LockExecutor {
         Object releaseResult = redisTemplate.execute(SCRIPT_UNLOCK,
                 redisTemplate.getStringSerializer(),
                 redisTemplate.getStringSerializer(),
-                Collections.singletonList(lockInfo.getKey()),
-                lockInfo.getLockId());
+                Collections.singletonList(lockInfo.getLockKey()),
+                lockInfo.getLockValue());
         return Boolean.valueOf(releaseResult.toString());
     }
 
