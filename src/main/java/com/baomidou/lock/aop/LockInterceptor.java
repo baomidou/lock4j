@@ -16,10 +16,9 @@
 package com.baomidou.lock.aop;
 
 import com.baomidou.lock.LockExecutor;
-import com.baomidou.lock.LockInfo;
 import com.baomidou.lock.LockKeyGenerator;
 import com.baomidou.lock.annotation.Lock4j;
-import lombok.Setter;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -33,25 +32,35 @@ import org.aopalliance.intercept.MethodInvocation;
 @Slf4j
 public class LockInterceptor implements MethodInterceptor {
 
-    @Setter
+    private static final LockKeyGenerator LOCK_KEY_GENERATOR = new LockKeyGenerator();
+
     private LockExecutor lockExecutor;
 
-    private LockKeyGenerator lockKeyGenerator = new LockKeyGenerator();
+    public LockInterceptor(@NonNull LockExecutor lockExecutor) {
+        this.lockExecutor = lockExecutor;
+    }
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
-        LockInfo lockInfo = null;
+        boolean locked = false;
+        String lockKey = null;
         try {
             Lock4j lock4j = invocation.getMethod().getAnnotation(Lock4j.class);
-            String keyName = lockKeyGenerator.getKeyName(invocation, lock4j);
-            lockInfo = lockExecutor.tryLock(keyName, lock4j.expire(), lock4j.tryTimeout());
-            if (null != lockInfo) {
+            lockKey = LOCK_KEY_GENERATOR.getKeyName(invocation, lock4j);
+            try {
+                locked = lockExecutor.acquireLock(lockKey, lock4j.acquireTimeout(), lock4j.expire());
+            } catch (Exception e) {
+                log.warn("lock failed", e);
+            }
+            if (locked) {
                 return invocation.proceed();
+            } else {
+                log.warn("lock timeout");
             }
             return null;
         } finally {
-            if (null != lockInfo) {
-                lockExecutor.releaseLock(lockInfo);
+            if (locked) {
+                lockExecutor.releaseLock(lockKey);
             }
         }
     }

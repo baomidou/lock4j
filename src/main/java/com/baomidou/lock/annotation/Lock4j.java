@@ -31,18 +31,18 @@ import java.lang.annotation.Target;
 public @interface Lock4j {
 
     /**
-     * KEY 默认包名+方法名
+     * key 默认包名+方法名
      */
     String[] keys() default "";
 
     /**
-     * 过期时间 单位：毫秒
+     * 尝试获取锁超时时间 单位：毫秒，默认3秒超时
      */
-    long expire() default 30000;
+    long acquireTimeout() default 3000;
 
     /**
-     * 尝试获取锁超时时间 单位：毫秒
+     * 锁自动过期时间 单位：毫秒，默认10秒自动过期
      */
-    long tryTimeout() default 3000;
+    long expire() default 10000;
 
 }

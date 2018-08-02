@@ -30,7 +30,7 @@ public class SpringBootLockTest {
 
     @Test
     public void simple1Test() throws Exception {
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        ExecutorService executorService = Executors.newFixedThreadPool(100);
         Runnable task = new Runnable() {
             public void run() {
                 try {
@@ -43,7 +43,7 @@ public class SpringBootLockTest {
         for (int i = 0; i < 100; i++) {
             executorService.submit(task);
         }
-        Thread.sleep(10000);
+        Thread.sleep(1000000);
     }
 
     @Test
