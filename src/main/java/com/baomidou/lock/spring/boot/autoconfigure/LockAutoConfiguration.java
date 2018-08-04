@@ -18,12 +18,21 @@ package com.baomidou.lock.spring.boot.autoconfigure;
 import com.baomidou.lock.LockExecutor;
 import com.baomidou.lock.RedisTemplateLockExecutor;
 import com.baomidou.lock.RedissonLockExecutor;
+import com.baomidou.lock.ZookeeperLockExecutor;
 import com.baomidou.lock.aop.LockAnnotationAdvisor;
 import com.baomidou.lock.aop.LockInterceptor;
+import com.baomidou.lock.condition.ZookeeperCondition;
+import lombok.Data;
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.redisson.api.RedissonClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 
@@ -43,6 +52,7 @@ public class LockAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean({RedisTemplate.class,CuratorFramework.class})
     @ConditionalOnBean(RedissonClient.class)
     public LockExecutor redissonLockExecutor(RedissonClient redissonClient) {
         return new RedissonLockExecutor(redissonClient);
@@ -60,4 +70,37 @@ public class LockAutoConfiguration {
         return new LockInterceptor(lockExecutor);
     }
 
+    @Conditional(ZookeeperCondition.class)
+    @ConditionalOnMissingBean({RedisTemplate.class,RedissonClient.class})
+    @ConfigurationProperties(prefix = "spring.coordinate.zookeeper")
+    @Data
+    public class CoordinateConfiguration {
+        private String zkServers;
+
+        private int sessionTimeout = 30000;
+
+        private int connectionTimeout = 5000;
+
+        private int baseSleepTimeMs = 1000;
+
+        private int maxRetries = 3;
+
+        @Bean(destroyMethod = "close")
+        public CuratorFramework curatorFramework() {
+            RetryPolicy retryPolicy = new ExponentialBackoffRetry(this.baseSleepTimeMs, this.maxRetries);
+            CuratorFramework curatorFramework = CuratorFrameworkFactory.builder()
+                    .connectString(this.zkServers)
+                    .sessionTimeoutMs(this.sessionTimeout)
+                    .connectionTimeoutMs(this.connectionTimeout)
+                    .retryPolicy(retryPolicy)
+                    .build();
+            curatorFramework.start();
+            return curatorFramework;
+        }
+
+        @Bean
+        public LockExecutor zookeeperLockExecutor(CuratorFramework curatorFramework) {
+            return new ZookeeperLockExecutor(curatorFramework);
+        }
+    }
 }

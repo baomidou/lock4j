@@ -53,6 +53,7 @@ public class LockInterceptor implements MethodInterceptor {
                 log.warn("lock failed", e);
             }
             if (locked) {
+                log.debug("acquireLock success");
                 return invocation.proceed();
             } else {
                 log.warn("lock timeout");
