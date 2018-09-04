@@ -38,7 +38,7 @@ public class LockUtil {
             // 获得网络接口对象（即网卡），并得到mac地址，mac地址存在于一个byte数组中。
             byte[] mac = NetworkInterface.getByInetAddress(ia).getHardwareAddress();
             // 下面代码是把mac地址拼装成String
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             for (int i = 0; i < mac.length; i++) {
                 if (i != 0) {
                     sb.append("-");
@@ -48,7 +48,7 @@ public class LockUtil {
                 sb.append(s.length() == 1 ? 0 + s : s);
             }
             // 把字符串所有小写字母改为大写成为正规的mac地址并返回
-            return sb.toString().toUpperCase().replaceAll("-", "");
+            return sb.toString().toUpperCase().replace("-", "");
         } catch (Exception e) {
             throw new IllegalStateException("getLocalMAC error");
         }
@@ -63,8 +63,7 @@ public class LockUtil {
         String pid = ManagementFactory.getRuntimeMXBean().getName();
         int indexOf = pid.indexOf('@');
         if (indexOf > 0) {
-            pid = pid.substring(0, indexOf);
-            return pid;
+            return pid.substring(0, indexOf);
         }
         throw new IllegalStateException("ManagementFactory error");
     }
