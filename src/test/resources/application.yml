@@ -1,3 +1,10 @@
 spring:
   redis:
-    host: 47.100.20.186
+    host: 192.168.100.191
+    password: street
+  coordinate:
+    zookeeper:
+#      zkServers: 127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183
+logging:
+  level:
+    com.baomidou: debug

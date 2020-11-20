@@ -1,12 +1,12 @@
 /**
  * ﻿Copyright © 2018 organization 苞米豆
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,7 +15,6 @@
  */
 package com.baomidou.lock;
 
-import com.baomidou.lock.annotation.Lock4j;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.context.expression.MethodBasedEvaluationContext;
 import org.springframework.core.DefaultParameterNameDiscoverer;
@@ -32,21 +31,21 @@ import java.util.List;
 /**
  * 分布式锁Key生成器
  *
- * @author zengzh TaoYu
- * @since 1.0.0
+ * @author zengzhihong TaoYu
  */
-public class LockKeyGenerator {
+public class DefaultLockKeyBuilder implements LockKeyBuilder {
 
     private static final ParameterNameDiscoverer NAME_DISCOVERER = new DefaultParameterNameDiscoverer();
 
     private static final ExpressionParser PARSER = new SpelExpressionParser();
 
-    public String getKeyName(MethodInvocation invocation, Lock4j lock4j) {
-        StringBuilder sb = new StringBuilder();
+    @Override
+    public String buildKey(MethodInvocation invocation, String[] definitionKeys) {
+        StringBuilder sb = new StringBuilder("lock4j:");
         Method method = invocation.getMethod();
-        sb.append(method.getDeclaringClass().getName()).append(".").append(method.getName());
-        if (lock4j.keys().length > 1 || !"".equals(lock4j.keys()[0])) {
-            sb.append(getSpelDefinitionKey(lock4j.keys(), method, invocation.getArguments()));
+        sb.append(method.getDeclaringClass().getName()).append(".").append(method.getName()).append("#");
+        if (definitionKeys.length > 1 || !"".equals(definitionKeys[0])) {
+            sb.append(getSpelDefinitionKey(definitionKeys, method, invocation.getArguments()));
         }
         return sb.toString();
     }

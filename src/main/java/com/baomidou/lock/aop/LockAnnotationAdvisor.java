@@ -28,14 +28,13 @@ import org.springframework.beans.factory.BeanFactoryAware;
 /**
  * 分布式锁aop通知
  *
- * @author zengzh TaoYu
- * @since 1.0.0
+ * @author zengzhihong TaoYu
  */
 public class LockAnnotationAdvisor extends AbstractPointcutAdvisor implements BeanFactoryAware {
 
-    private Advice advice;
+    private final Advice advice;
 
-    private Pointcut pointcut;
+    private final Pointcut pointcut;
 
     public LockAnnotationAdvisor(@NonNull LockInterceptor lockInterceptor) {
         this.advice = lockInterceptor;

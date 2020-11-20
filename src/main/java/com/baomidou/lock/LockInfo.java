@@ -16,12 +16,12 @@
 
 package com.baomidou.lock;
 
+import com.baomidou.lock.executor.LockExecutor;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
- * @author zengzh
- * @since 1.0.0
+ * @author zengzhihong
  */
 @Data
 @AllArgsConstructor
@@ -50,5 +50,10 @@ public class LockInfo {
     /**
      * 获取锁次数
      */
-    private int acquireCount = 0;
+    private int acquireCount;
+
+    /**
+     * 锁执行器
+     */
+    private LockExecutor lockExecutor;
 }
