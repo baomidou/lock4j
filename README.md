@@ -16,14 +16,14 @@
         <img src="http://img.shields.io/:license-apache-brightgreen.svg" >
     </a>
     <a>
-        <img src="https://img.shields.io/badge/JDK-1.7+-green.svg" >
+        <img src="https://img.shields.io/badge/JDK-1.8+-green.svg" >
     </a>
     <a>
-        <img src="https://img.shields.io/badge/springBoot-1.4+_1.5+_2.0+-green.svg" >
+        <img src="https://img.shields.io/badge/springBoot-2.0+-green.svg" >
     </a>
 </p>
 <p align="center">
-	QQ群:<a href="https://jq.qq.com/?_wv=1027&k=5tFhLhS" target="_blank">710314529</a>
+	QQ群：336752559
 </p>
 
 ## 简介
