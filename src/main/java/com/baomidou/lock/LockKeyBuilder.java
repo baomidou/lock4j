@@ -10,9 +10,9 @@ public interface LockKeyBuilder {
     /**
      * 构建key
      *
-     * @param invocation
-     * @param definitionKeys
-     * @return
+     * @param invocation     invocation
+     * @param definitionKeys 定义
+     * @return key
      */
     String buildKey(MethodInvocation invocation, String[] definitionKeys);
 }

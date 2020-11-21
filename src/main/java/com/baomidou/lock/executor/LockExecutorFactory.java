@@ -9,7 +9,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 /**
  * @author zengzhihong
- * @date 2020-01-11
  */
 @Slf4j
 public class LockExecutorFactory {

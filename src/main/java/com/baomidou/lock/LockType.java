@@ -2,7 +2,6 @@ package com.baomidou.lock;
 
 /**
  * @author zengzhihong
- * @date 2020-01-10
  */
 public enum LockType {
 

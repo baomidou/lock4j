@@ -19,7 +19,6 @@ public interface LockExecutor {
      * @param timeout   获取锁超时时间
      * @param expire    锁有效时间
      * @return 锁信息
-     * @throws Exception
      */
     boolean acquire(String lockKey, String lockValue, long timeout, long expire);
 

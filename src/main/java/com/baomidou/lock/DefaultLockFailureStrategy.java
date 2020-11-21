@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author zengzhihong
- * @date 2020-07-24
  */
 @Slf4j
 public class DefaultLockFailureStrategy implements LockFailureStrategy {
