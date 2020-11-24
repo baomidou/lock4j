@@ -55,6 +55,8 @@ public @interface Lock4j {
 
     /**
      * key构建器
+     *
+     * @return key构造器 默认{@link DefaultLockKeyBuilder}
      */
     Class<? extends LockKeyBuilder> keyBuilder() default DefaultLockKeyBuilder.class;
 
