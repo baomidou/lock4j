@@ -16,12 +16,10 @@
 
 package com.baomidou.lock.executor;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -32,15 +30,10 @@ import java.util.concurrent.TimeUnit;
  * @author zengzhihong TaoYu
  */
 @Slf4j
-public class RedissonLockExecutor extends AbstractLockExecutor implements LockExecutor,
-        ApplicationContextAware {
+@RequiredArgsConstructor
+public class RedissonLockExecutor extends AbstractLockExecutor implements LockExecutor {
 
-    private RedissonClient redissonClient;
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.redissonClient = applicationContext.getBean(RedissonClient.class);
-    }
+    private final RedissonClient redissonClient;
 
     @Override
     public Object acquire(String lockKey, String lockValue, long timeout, long expire) {

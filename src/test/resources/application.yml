@@ -1,10 +1,14 @@
 spring:
   redis:
-    host: 127.0.0.1
-    password: 123456
+    host: 39.108.158.138
+  #    password: 123456
   coordinate:
     zookeeper:
       zkServers: 127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183
 logging:
   level:
     com.baomidou: debug
+lock4j:
+  acquire-timeout: 3000 #默认值，可不设置
+  expire-time: 3000 #默认值，可不设置
+  primary: redisTemplate #默认redisson>redisTemplate>zookeeper

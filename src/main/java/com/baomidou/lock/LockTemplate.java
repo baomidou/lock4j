@@ -17,22 +17,18 @@
 package com.baomidou.lock;
 
 import com.baomidou.lock.annotation.Lock4j;
-import com.baomidou.lock.exception.LockException;
 import com.baomidou.lock.executor.LockExecutor;
-import com.baomidou.lock.executor.RedisTemplateLockExecutor;
-import com.baomidou.lock.executor.RedissonLockExecutor;
+import com.baomidou.lock.spring.boot.autoconfigure.Lock4jProperties;
 import com.baomidou.lock.util.LockUtil;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInvocation;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -44,38 +40,42 @@ import java.util.Map;
  * @author zengzhihong TaoYu
  */
 @Slf4j
-public class LockTemplate implements ApplicationListener<ApplicationEvent> {
+public class LockTemplate implements InitializingBean {
 
     private static final String PROCESS_ID = LockUtil.getLocalMAC() + LockUtil.getJvmPid();
-
+    private final Map<String, LockExecutor> executorMap = new LinkedHashMap<>();
+    @Setter
+    private Lock4jProperties properties;
     @Setter
     private LockKeyBuilder lockKeyBuilder;
     @Setter
-    private LockFailureStrategy lockFailureStrategy = new DefaultLockFailureStrategy();
+    private LockFailureStrategy lockFailureStrategy;
     @Setter
-    private Map<String, LockExecutor> executorMap = new LinkedHashMap<>();
+    private List<LockExecutor> executors;
+    private LockExecutor primaryExecutor;
 
     public LockTemplate() {
     }
 
     public LockInfo lock(MethodInvocation invocation, Lock4j lock4j) throws Exception {
-        Assert.isTrue(lock4j.acquireTimeout() > 0, "tryTimeout must more than 0");
+        long timeout = lock4j.acquireTimeout() == 0 ? properties.getAcquireTimeout() : lock4j.acquireTimeout();
+        long expire = lock4j.expire() == 0 ? properties.getExpireTime() : lock4j.expire();
         String key = lockKeyBuilder.buildKey(invocation, lock4j.keys());
         LockExecutor lockExecutor = obtainExecutor(lock4j.executor());
         long start = System.currentTimeMillis();
         int acquireCount = 0;
         String value = PROCESS_ID + Thread.currentThread().getId();
-        while (System.currentTimeMillis() - start < lock4j.acquireTimeout()) {
+        while (System.currentTimeMillis() - start < timeout) {
             acquireCount++;
-            Object lockInstance = lockExecutor.acquire(key, value, lock4j.acquireTimeout(), lock4j.expire());
+            Object lockInstance = lockExecutor.acquire(key, value, timeout, expire);
             if (null != lockInstance) {
-                return new LockInfo(key, value, lock4j.expire(), lock4j.acquireTimeout(), acquireCount, lockInstance,
+                return new LockInfo(key, value, expire, timeout, acquireCount, lockInstance,
                         lockExecutor);
             }
             Thread.sleep(100);
         }
         if (null != lockFailureStrategy) {
-            lockFailureStrategy.onLockFailure(lock4j.acquireTimeout(), acquireCount);
+            lockFailureStrategy.onLockFailure(timeout, acquireCount);
         }
         return null;
     }
@@ -86,34 +86,33 @@ public class LockTemplate implements ApplicationListener<ApplicationEvent> {
     }
 
     protected LockExecutor obtainExecutor(String beanName) {
-        boolean isEmptyBeanName = "".equals(beanName);
-        if (isEmptyBeanName) {
-            final String redissonBeanName = firstToLowerCase(RedissonLockExecutor.class.getSimpleName());
-            final String redisTemplateBeanName = firstToLowerCase(RedisTemplateLockExecutor.class.getSimpleName());
-            if (executorMap.containsKey(redissonBeanName)) {
-                return executorMap.get(redissonBeanName);
-            }
-            if (executorMap.containsKey(redisTemplateBeanName)) {
-                return executorMap.get(redisTemplateBeanName);
-            }
-            return executorMap.entrySet().iterator().next().getValue();
-        }
-        return executorMap.get(beanName);
-
+        return executorMap.getOrDefault(beanName, primaryExecutor);
     }
 
     private String firstToLowerCase(String param) {
-        return param.substring(0, 1).toLowerCase() + param.substring(1);
+        return param.substring(0, 1).toLowerCase() + param.substring(1, param.indexOf("Lock"));
     }
 
     @Override
-    public void onApplicationEvent(ApplicationEvent event) {
-        if (event instanceof ContextRefreshedEvent) {
-            final ApplicationContext applicationContext = ((ContextRefreshedEvent) event).getApplicationContext();
-            this.executorMap = applicationContext.getBeansOfType(LockExecutor.class);
-            if (CollectionUtils.isEmpty(executorMap)) {
-                throw new LockException("require least 1 bean of Type com.baomidou.lock.executor.LockExecutor");
-            }
+    public void afterPropertiesSet() throws Exception {
+
+        Assert.isTrue(properties.getAcquireTimeout() > 0, "tryTimeout must more than 0");
+        Assert.isTrue(properties.getExpireTime() > 0, "expireTime must more than 0");
+        Assert.notEmpty(executors, "executors must have at least one");
+
+        for (LockExecutor executor : executors) {
+            Class<? extends LockExecutor> executorClass = executor.getClass();
+            String simpleName = executorClass.getSimpleName();
+            String key = firstToLowerCase(simpleName);
+            executorMap.put(key, executor);
+        }
+
+        String primary = properties.getPrimary();
+        if (StringUtils.isEmpty(primary)) {
+            primaryExecutor = executors.get(0);
+        } else {
+            primaryExecutor = executorMap.get(primary);
+            Assert.notNull(primaryExecutor, "primaryExecutor must not be null");
         }
     }
 }

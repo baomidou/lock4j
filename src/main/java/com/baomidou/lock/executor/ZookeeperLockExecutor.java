@@ -16,13 +16,11 @@
 
 package com.baomidou.lock.executor;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 import java.util.concurrent.TimeUnit;
 
@@ -32,14 +30,10 @@ import java.util.concurrent.TimeUnit;
  * @author zengzhihong
  */
 @Slf4j
-public class ZookeeperLockExecutor extends AbstractLockExecutor implements LockExecutor, ApplicationContextAware {
+@RequiredArgsConstructor
+public class ZookeeperLockExecutor extends AbstractLockExecutor implements LockExecutor {
 
-    private CuratorFramework curatorFramework;
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.curatorFramework = applicationContext.getBean(CuratorFramework.class);
-    }
+    private final CuratorFramework curatorFramework;
 
     @Override
     public Object acquire(String lockKey, String lockValue, long timeout, long expire) {

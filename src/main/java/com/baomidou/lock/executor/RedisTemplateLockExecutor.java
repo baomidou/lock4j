@@ -16,10 +16,8 @@
 
 package com.baomidou.lock.executor;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
@@ -32,7 +30,8 @@ import java.util.Collections;
  * @author zengzhihong TaoYu
  */
 @Slf4j
-public class RedisTemplateLockExecutor extends AbstractLockExecutor implements LockExecutor, ApplicationContextAware {
+@RequiredArgsConstructor
+public class RedisTemplateLockExecutor extends AbstractLockExecutor implements LockExecutor {
 
     private static final RedisScript<String> SCRIPT_LOCK = new DefaultRedisScript<>("return redis.call('set',KEYS[1]," +
             "ARGV[1],'NX','PX',ARGV[2])", String.class);
@@ -40,13 +39,7 @@ public class RedisTemplateLockExecutor extends AbstractLockExecutor implements L
             "== ARGV[1] then return tostring(redis.call('del', KEYS[1])==1) else return 'false' end", String.class);
     private static final String LOCK_SUCCESS = "OK";
 
-    private StringRedisTemplate redisTemplate;
-
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.redisTemplate = applicationContext.getBean(StringRedisTemplate.class);
-    }
+    private final StringRedisTemplate redisTemplate;
 
     @Override
     public Object acquire(String lockKey, String lockValue, long timeout, long expire) {

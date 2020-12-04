@@ -43,17 +43,17 @@ public @interface Lock4j {
     /**
      * @return 过期时间 单位：毫秒
      * <pre>
-     *     过期时间一定是要长于业务的执行时间.
+     *     过期时间一定是要长于业务的执行时间. 未设置则为默认时间3秒
      * </pre>
      */
-    long expire() default 30000;
+    long expire() default 0;
 
     /**
      * @return 获取锁超时时间 单位：毫秒
      * <pre>
-     *     结合业务,建议该时间不宜设置过长,特别在并发高的情况下.
+     *     结合业务,建议该时间不宜设置过长,特别在并发高的情况下. 未设置则为默认时间3秒
      * </pre>
      */
-    long acquireTimeout() default 3000;
+    long acquireTimeout() default 0;
 
 }
