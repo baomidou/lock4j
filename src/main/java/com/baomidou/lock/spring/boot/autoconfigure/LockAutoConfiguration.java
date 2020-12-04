@@ -66,7 +66,7 @@ public class LockAutoConfiguration {
 
     @Configuration
     @ConditionalOnClass(RedisAutoConfiguration.class)
-    class RedisExecutorAutoConfiguration {
+    static class RedisExecutorAutoConfiguration {
         @Bean
         public RedisTemplateLockExecutor redisTemplateLockExecutor() {
             return new RedisTemplateLockExecutor();
@@ -75,7 +75,7 @@ public class LockAutoConfiguration {
 
     @Configuration
     @ConditionalOnClass(RedissonAutoConfiguration.class)
-    class RedissonExecutorAutoConfiguration {
+    static class RedissonExecutorAutoConfiguration {
         @Bean
         public RedissonLockExecutor redissonLockExecutor() {
             return new RedissonLockExecutor();
@@ -86,7 +86,7 @@ public class LockAutoConfiguration {
     @Conditional(ZookeeperCondition.class)
     @ConfigurationProperties(prefix = "spring.coordinate.zookeeper")
     @Data
-    public static class CoordinateConfiguration {
+    static class CoordinateConfiguration {
 
         private String zkServers;
 
