@@ -16,22 +16,32 @@
 
 package com.baomidou.lock.spring.boot.autoconfigure;
 
+import com.baomidou.lock.DefaultLockKeyBuilder;
+import com.baomidou.lock.LockKeyBuilder;
 import com.baomidou.lock.LockTemplate;
 import com.baomidou.lock.aop.LockAnnotationAdvisor;
 import com.baomidou.lock.aop.LockInterceptor;
 import com.baomidou.lock.condition.ZookeeperCondition;
-import com.baomidou.lock.executor.LockExecutorFactory;
+import com.baomidou.lock.executor.RedisTemplateLockExecutor;
+import com.baomidou.lock.executor.RedissonLockExecutor;
+import com.baomidou.lock.executor.ZookeeperLockExecutor;
 import lombok.Data;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.redisson.api.RedissonClient;
+import org.redisson.jcache.configuration.RedissonConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
  * 分布式锁自动配置器
@@ -39,13 +49,8 @@ import org.springframework.core.Ordered;
  * @author zengzhihong TaoYu
  */
 @Configuration
+@AutoConfigureAfter({RedisAutoConfiguration.class, RedissonConfiguration.class})
 public class LockAutoConfiguration {
-
-    @Bean
-    @ConditionalOnMissingBean
-    public LockTemplate lockTemplate(LockExecutorFactory lockExecutorFactory) {
-        return new LockTemplate(lockExecutorFactory);
-    }
 
     @Bean
     @ConditionalOnMissingBean
@@ -55,16 +60,33 @@ public class LockAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public LockInterceptor lockInterceptor(LockTemplate lockTemplate) {
-        return new LockInterceptor(lockTemplate);
+    public LockKeyBuilder lockKeyBuilder() {
+        return new DefaultLockKeyBuilder();
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public LockExecutorFactory lockExecutorFactory() {
-        return new LockExecutorFactory();
+    public LockTemplate lockTemplate(LockKeyBuilder lockKeyBuilder) {
+        return new LockTemplate(lockKeyBuilder);
     }
 
+    @Bean
+    @ConditionalOnBean(RedissonClient.class)
+    public RedissonLockExecutor redissonLockExecutor() {
+        return new RedissonLockExecutor();
+    }
+
+    @Bean
+    @ConditionalOnBean(StringRedisTemplate.class)
+    public RedisTemplateLockExecutor redisTemplateLockExecutor() {
+        return new RedisTemplateLockExecutor();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public LockInterceptor lockInterceptor(LockTemplate lockTemplate) {
+        return new LockInterceptor(lockTemplate);
+    }
 
     @Conditional(ZookeeperCondition.class)
     @ConfigurationProperties(prefix = "spring.coordinate.zookeeper")
@@ -82,6 +104,7 @@ public class LockAutoConfiguration {
         private int maxRetries = 3;
 
         @Bean(destroyMethod = "close")
+        @ConditionalOnMissingBean(CuratorFramework.class)
         public CuratorFramework curatorFramework() {
             RetryPolicy retryPolicy = new ExponentialBackoffRetry(this.baseSleepTimeMs, this.maxRetries);
             CuratorFramework curatorFramework = CuratorFrameworkFactory.builder()
@@ -94,5 +117,9 @@ public class LockAutoConfiguration {
             return curatorFramework;
         }
 
+        @Bean
+        public ZookeeperLockExecutor zookeeperLockExecutor() {
+            return new ZookeeperLockExecutor();
+        }
     }
 }

@@ -14,32 +14,15 @@
  *  limitations under the License.
  */
 
-package com.baomidou.lock;
+package com.baomidou.lock.executor;
 
 /**
  * @author zengzhihong
  */
-public enum LockType {
+public abstract class AbstractLockExecutor {
 
-    /**
-     * 可重入锁
-     */
-    REENTRANT,
+    protected Object obtainLockInstance(boolean locked, Object lockInstance) {
+        return locked ? lockInstance : null;
+    }
 
-    /**
-     * 公平锁
-     */
-    Fair,
-
-    /**
-     * 读写锁
-     */
-    READ,
-
-    /**
-     * 写锁
-     */
-    WRITE,
-
-    ;
 }

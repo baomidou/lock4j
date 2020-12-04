@@ -16,45 +16,49 @@
 
 package com.baomidou.lock.executor;
 
-import com.baomidou.lock.LockInfo;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RReadWriteLock;
+import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 分布式锁原生RedisTemplate处理器
+ * redisson 重入锁
  *
  * @author zengzhihong TaoYu
  */
 @Slf4j
-public class RedissonWriteLockExecutor implements LockExecutor {
-
-    private RReadWriteLock lock;
+public class RedissonLockExecutor extends AbstractLockExecutor implements LockExecutor,
+        ApplicationContextAware {
 
     private RedissonClient redissonClient;
 
-    public RedissonWriteLockExecutor(RedissonClient redissonClient) {
-        this.redissonClient = redissonClient;
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.redissonClient = applicationContext.getBean(RedissonClient.class);
     }
 
     @Override
-    public boolean acquire(String lockKey, String lockValue, long timeout, long expire) {
+    public Object acquire(String lockKey, String lockValue, long timeout, long expire) {
         try {
-            lock = redissonClient.getReadWriteLock(lockKey);
-            return lock.writeLock().tryLock(timeout, expire, TimeUnit.MILLISECONDS);
+            final RLock lockInstance = redissonClient.getLock(lockKey);
+            final boolean locked = lockInstance.tryLock(timeout, expire, TimeUnit.MILLISECONDS);
+            return obtainLockInstance(locked, lockInstance);
         } catch (InterruptedException e) {
-            return false;
+            return null;
         }
     }
 
     @Override
-    public boolean releaseLock(LockInfo lockInfo) {
-        if (lock.readLock().isHeldByCurrentThread()) {
+    public boolean releaseLock(String key, String value, Object lockInstance) {
+        final RLock instance = (RLock) lockInstance;
+        if (instance.isHeldByCurrentThread()) {
             try {
-                return lock.writeLock().forceUnlockAsync().get();
+                return instance.forceUnlockAsync().get();
             } catch (ExecutionException | InterruptedException e) {
                 return false;
             }

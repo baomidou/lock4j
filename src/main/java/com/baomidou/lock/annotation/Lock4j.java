@@ -16,13 +16,6 @@
 
 package com.baomidou.lock.annotation;
 
-import com.baomidou.lock.DefaultLockFailureStrategy;
-import com.baomidou.lock.DefaultLockKeyBuilder;
-import com.baomidou.lock.LockClient;
-import com.baomidou.lock.LockFailureStrategy;
-import com.baomidou.lock.LockKeyBuilder;
-import com.baomidou.lock.LockType;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -38,27 +31,14 @@ import java.lang.annotation.Target;
 public @interface Lock4j {
 
     /**
-     * @return lock client
+     * @return lock 执行器 可以指定执行器beanName
      */
-    LockClient client() default LockClient.REDISSON;
-
-    /**
-     * @return 锁类型 目前就redisson支持
-     * @see LockType
-     */
-    LockType type() default LockType.REENTRANT;
+    String executor() default "";
 
     /**
      * @return KEY 默认包名+方法名
      */
     String[] keys() default "";
-
-    /**
-     * key构建器
-     *
-     * @return key构造器 默认{@link DefaultLockKeyBuilder}
-     */
-    Class<? extends LockKeyBuilder> keyBuilder() default DefaultLockKeyBuilder.class;
 
     /**
      * @return 过期时间 单位：毫秒
@@ -75,10 +55,5 @@ public @interface Lock4j {
      * </pre>
      */
     long acquireTimeout() default 3000;
-
-    /**
-     * @return 锁失败策略 默认是抛异常 {@link DefaultLockFailureStrategy#onLockFailure(long, int)}
-     */
-    Class<? extends LockFailureStrategy> lockFailureStrategy() default DefaultLockFailureStrategy.class;
 
 }

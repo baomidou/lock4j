@@ -28,11 +28,11 @@
 
     <groupId>com.baomidou</groupId>
     <artifactId>lock4j-spring-boot-starter</artifactId>
-    <version>2.0.1</version>
+    <version>2.0.2</version>
     <packaging>jar</packaging>
 
     <name>lock4j-spring-boot-starter</name>
-    <description>distributed lock with RedisTemplate Redission Zookeeper</description>
+    <description>distributed lock with RedisTemplate Redisson Zookeeper</description>
     <inceptionYear>2018</inceptionYear>
 
     <licenses>

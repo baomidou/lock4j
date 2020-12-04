@@ -16,12 +16,13 @@
 
 package com.baomidou.lock.executor;
 
-import com.baomidou.lock.LockInfo;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import java.util.concurrent.TimeUnit;
 
@@ -31,38 +32,35 @@ import java.util.concurrent.TimeUnit;
  * @author zengzhihong
  */
 @Slf4j
-public class ZookeeperLockExecutor implements LockExecutor {
+public class ZookeeperLockExecutor extends AbstractLockExecutor implements LockExecutor, ApplicationContextAware {
 
-    private InterProcessMutex mutex;
+    private CuratorFramework curatorFramework;
 
-    private final CuratorFramework curatorFramework;
-
-    public ZookeeperLockExecutor(@NonNull CuratorFramework curatorFramework) {
-        this.curatorFramework = curatorFramework;
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.curatorFramework = applicationContext.getBean(CuratorFramework.class);
     }
 
     @Override
-    public boolean acquire(String lockKey, String lockValue, long timeout, long expire) {
+    public Object acquire(String lockKey, String lockValue, long timeout, long expire) {
         if (!CuratorFrameworkState.STARTED.equals(curatorFramework.getState())) {
             log.warn("instance must be started before calling this method");
             return false;
         }
         String nodePath = "/curator/lock4j/%s";
-
-        boolean locked;
         try {
-            mutex = new InterProcessMutex(curatorFramework, String.format(nodePath, lockKey));
-            locked = mutex.acquire(timeout, TimeUnit.SECONDS);
+            InterProcessMutex mutex = new InterProcessMutex(curatorFramework, String.format(nodePath, lockKey));
+            final boolean locked = mutex.acquire(timeout, TimeUnit.SECONDS);
+            return obtainLockInstance(locked, mutex);
         } catch (Exception e) {
-            return false;
+            return null;
         }
-        return locked;
     }
 
     @Override
-    public boolean releaseLock(LockInfo lockInfo) {
+    public boolean releaseLock(String key, String value, Object lockInstance) {
         try {
-            mutex.release();
+            ((InterProcessMutex) lockInstance).release();
         } catch (Exception e) {
             log.warn("zookeeper lock release error", e);
             return false;

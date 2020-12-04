@@ -17,17 +17,21 @@
 package com.baomidou.lock;
 
 import com.baomidou.lock.annotation.Lock4j;
+import com.baomidou.lock.exception.LockException;
 import com.baomidou.lock.executor.LockExecutor;
-import com.baomidou.lock.executor.LockExecutorFactory;
+import com.baomidou.lock.executor.RedisTemplateLockExecutor;
+import com.baomidou.lock.executor.RedissonLockExecutor;
 import com.baomidou.lock.util.LockUtil;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.Assert;
-import org.springframework.util.ReflectionUtils;
+import org.springframework.util.CollectionUtils;
 
-import java.lang.reflect.Method;
-import java.util.Objects;
+import java.util.Map;
 
 
 /**
@@ -38,44 +42,78 @@ import java.util.Objects;
  * @author zengzhihong TaoYu
  */
 @Slf4j
-public class LockTemplate {
+public class LockTemplate implements ApplicationContextAware {
 
     private static final String PROCESS_ID = LockUtil.getLocalMAC() + LockUtil.getJvmPid();
 
     @Setter
-    private LockExecutorFactory lockExecutorFactory;
+    private LockKeyBuilder lockKeyBuilder;
+    @Setter
+    private LockFailureStrategy lockFailureStrategy;
+    private Map<String, LockExecutor> executorMap;
 
-    public LockTemplate(LockExecutorFactory lockExecutorFactory) {
-        this.lockExecutorFactory = lockExecutorFactory;
+    public LockTemplate(LockKeyBuilder lockKeyBuilder) {
+        this.lockKeyBuilder = lockKeyBuilder;
     }
 
     public LockInfo lock(MethodInvocation invocation, Lock4j lock4j) throws Exception {
         Assert.isTrue(lock4j.acquireTimeout() > 0, "tryTimeout must more than 0");
-        Method buildKeyMethod = ReflectionUtils.findMethod(lock4j.keyBuilder(), "buildKey", MethodInvocation.class,
-                String[].class);
-        String key = (String) ReflectionUtils.invokeMethod(Objects.requireNonNull(buildKeyMethod),
-                lock4j.keyBuilder().newInstance(), invocation, lock4j.keys());
-        LockExecutor lockExecutor = lockExecutorFactory.buildExecutor(lock4j);
+        String key = lockKeyBuilder.buildKey(invocation, lock4j.keys());
+        LockExecutor lockExecutor = obtainExecutor(lock4j.executor());
         long start = System.currentTimeMillis();
         int acquireCount = 0;
         String value = PROCESS_ID + Thread.currentThread().getId();
         while (System.currentTimeMillis() - start < lock4j.acquireTimeout()) {
             acquireCount++;
-            boolean result = lockExecutor.acquire(key, value, lock4j.acquireTimeout(), lock4j.expire());
-            if (result) {
-                return new LockInfo(key, value, lock4j.expire(), lock4j.acquireTimeout(), acquireCount, lockExecutor);
+            Object lockInstance = lockExecutor.acquire(key, value, lock4j.acquireTimeout(), lock4j.expire());
+            if (null != lockInstance) {
+                return new LockInfo(key, value, lock4j.expire(), lock4j.acquireTimeout(), acquireCount, lockInstance,
+                        lockExecutor);
             }
             Thread.sleep(100);
         }
-        log.info("lock failed, try {} times", acquireCount);
-        Method onLockFailureMethod = ReflectionUtils.findMethod(lock4j.lockFailureStrategy(), "onLockFailure",
-                long.class, int.class);
-        ReflectionUtils.invokeMethod(Objects.requireNonNull(onLockFailureMethod),
-                lock4j.lockFailureStrategy().newInstance(), lock4j.acquireTimeout(), acquireCount);
+        if (null != lockFailureStrategy) {
+            lockFailureStrategy.onLockFailure(lock4j.acquireTimeout(), acquireCount);
+        }
         return null;
     }
 
     public boolean releaseLock(LockInfo lockInfo) {
-        return lockInfo.getLockExecutor().releaseLock(lockInfo);
+        return lockInfo.getLockExecutor().releaseLock(lockInfo.getLockKey(), lockInfo.getLockValue(),
+                lockInfo.getLockInstance());
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.executorMap = applicationContext.getBeansOfType(LockExecutor.class);
+        if (CollectionUtils.isEmpty(executorMap)) {
+            throw new LockException("require least 1 bean of Type com.baomidou.lock.executor.LockExecutor");
+        }
+        if (applicationContext.getBeanNamesForType(LockFailureStrategy.class, false, false).length > 0) {
+            this.lockFailureStrategy = applicationContext.getBean(LockFailureStrategy.class);
+        } else {
+            this.lockFailureStrategy = new DefaultLockFailureStrategy();
+        }
+    }
+
+    protected LockExecutor obtainExecutor(String beanName) {
+        boolean isEmptyBeanName = "".equals(beanName);
+        if (isEmptyBeanName) {
+            final String redissonBeanName = firstToLowerCase(RedissonLockExecutor.class.getSimpleName());
+            final String redisTemplateBeanName = firstToLowerCase(RedisTemplateLockExecutor.class.getSimpleName());
+            if (executorMap.containsKey(redissonBeanName)) {
+                return executorMap.get(redissonBeanName);
+            }
+            if (executorMap.containsKey(redisTemplateBeanName)) {
+                return executorMap.get(redisTemplateBeanName);
+            }
+            return executorMap.entrySet().iterator().next().getValue();
+        }
+        return executorMap.get(beanName);
+
+    }
+
+    private String firstToLowerCase(String param) {
+        return param.substring(0, 1).toLowerCase() + param.substring(1);
     }
 }

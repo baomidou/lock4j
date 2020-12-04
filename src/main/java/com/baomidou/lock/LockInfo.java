@@ -53,6 +53,11 @@ public class LockInfo {
     private int acquireCount;
 
     /**
+     * 锁实例
+     */
+    private Object lockInstance;
+
+    /**
      * 锁执行器
      */
     private LockExecutor lockExecutor;
