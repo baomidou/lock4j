@@ -22,6 +22,9 @@ import com.baomidou.lock.annotation.Lock4j;
 import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 
 /**
@@ -30,12 +33,13 @@ import org.aopalliance.intercept.MethodInvocation;
  * @author zengzhihong TaoYu
  */
 @Slf4j
-public class LockInterceptor implements MethodInterceptor {
+public class LockInterceptor implements MethodInterceptor, ApplicationContextAware {
 
-    private final LockTemplate lockTemplate;
+    private LockTemplate lockTemplate;
 
-    public LockInterceptor(LockTemplate lockTemplate) {
-        this.lockTemplate = lockTemplate;
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.lockTemplate = applicationContext.getBean(LockTemplate.class);
     }
 
     @Override

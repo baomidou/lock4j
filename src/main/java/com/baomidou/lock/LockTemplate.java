@@ -25,12 +25,14 @@ import com.baomidou.lock.util.LockUtil;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInvocation;
-import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 
@@ -42,18 +44,18 @@ import java.util.Map;
  * @author zengzhihong TaoYu
  */
 @Slf4j
-public class LockTemplate implements ApplicationContextAware {
+public class LockTemplate implements ApplicationListener<ApplicationEvent> {
 
     private static final String PROCESS_ID = LockUtil.getLocalMAC() + LockUtil.getJvmPid();
 
     @Setter
     private LockKeyBuilder lockKeyBuilder;
     @Setter
-    private LockFailureStrategy lockFailureStrategy;
-    private Map<String, LockExecutor> executorMap;
+    private LockFailureStrategy lockFailureStrategy = new DefaultLockFailureStrategy();
+    @Setter
+    private Map<String, LockExecutor> executorMap = new LinkedHashMap<>();
 
-    public LockTemplate(LockKeyBuilder lockKeyBuilder) {
-        this.lockKeyBuilder = lockKeyBuilder;
+    public LockTemplate() {
     }
 
     public LockInfo lock(MethodInvocation invocation, Lock4j lock4j) throws Exception {
@@ -83,19 +85,6 @@ public class LockTemplate implements ApplicationContextAware {
                 lockInfo.getLockInstance());
     }
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.executorMap = applicationContext.getBeansOfType(LockExecutor.class);
-        if (CollectionUtils.isEmpty(executorMap)) {
-            throw new LockException("require least 1 bean of Type com.baomidou.lock.executor.LockExecutor");
-        }
-        if (applicationContext.getBeanNamesForType(LockFailureStrategy.class, false, false).length > 0) {
-            this.lockFailureStrategy = applicationContext.getBean(LockFailureStrategy.class);
-        } else {
-            this.lockFailureStrategy = new DefaultLockFailureStrategy();
-        }
-    }
-
     protected LockExecutor obtainExecutor(String beanName) {
         boolean isEmptyBeanName = "".equals(beanName);
         if (isEmptyBeanName) {
@@ -115,5 +104,16 @@ public class LockTemplate implements ApplicationContextAware {
 
     private String firstToLowerCase(String param) {
         return param.substring(0, 1).toLowerCase() + param.substring(1);
+    }
+
+    @Override
+    public void onApplicationEvent(ApplicationEvent event) {
+        if (event instanceof ContextRefreshedEvent) {
+            final ApplicationContext applicationContext = ((ContextRefreshedEvent) event).getApplicationContext();
+            this.executorMap = applicationContext.getBeansOfType(LockExecutor.class);
+            if (CollectionUtils.isEmpty(executorMap)) {
+                throw new LockException("require least 1 bean of Type com.baomidou.lock.executor.LockExecutor");
+            }
+        }
     }
 }

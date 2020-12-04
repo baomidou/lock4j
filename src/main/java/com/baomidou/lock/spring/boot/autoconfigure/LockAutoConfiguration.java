@@ -17,6 +17,7 @@
 package com.baomidou.lock.spring.boot.autoconfigure;
 
 import com.baomidou.lock.DefaultLockKeyBuilder;
+import com.baomidou.lock.LockFailureStrategy;
 import com.baomidou.lock.LockKeyBuilder;
 import com.baomidou.lock.LockTemplate;
 import com.baomidou.lock.aop.LockAnnotationAdvisor;
@@ -30,18 +31,18 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.redisson.api.RedissonClient;
-import org.redisson.jcache.configuration.RedissonConfiguration;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.redisson.spring.starter.RedissonAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
-import org.springframework.data.redis.core.StringRedisTemplate;
+
+import java.util.function.Consumer;
 
 /**
  * 分布式锁自动配置器
@@ -49,13 +50,12 @@ import org.springframework.data.redis.core.StringRedisTemplate;
  * @author zengzhihong TaoYu
  */
 @Configuration
-@AutoConfigureAfter({RedisAutoConfiguration.class, RedissonConfiguration.class})
 public class LockAutoConfiguration {
 
-    @Bean
-    @ConditionalOnMissingBean
-    public LockAnnotationAdvisor lockAnnotationAdvisor(LockInterceptor lockInterceptor) {
-        return new LockAnnotationAdvisor(lockInterceptor, Ordered.HIGHEST_PRECEDENCE);
+    private final ApplicationContext applicationContext;
+
+    public LockAutoConfiguration(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     @Bean
@@ -64,29 +64,24 @@ public class LockAutoConfiguration {
         return new DefaultLockKeyBuilder();
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    public LockTemplate lockTemplate(LockKeyBuilder lockKeyBuilder) {
-        return new LockTemplate(lockKeyBuilder);
+    @Configuration
+    @ConditionalOnClass(RedisAutoConfiguration.class)
+    class RedisExecutorAutoConfiguration {
+        @Bean
+        public RedisTemplateLockExecutor redisTemplateLockExecutor() {
+            return new RedisTemplateLockExecutor();
+        }
     }
 
-    @Bean
-    @ConditionalOnBean(RedissonClient.class)
-    public RedissonLockExecutor redissonLockExecutor() {
-        return new RedissonLockExecutor();
+    @Configuration
+    @ConditionalOnClass(RedissonAutoConfiguration.class)
+    class RedissonExecutorAutoConfiguration {
+        @Bean
+        public RedissonLockExecutor redissonLockExecutor() {
+            return new RedissonLockExecutor();
+        }
     }
 
-    @Bean
-    @ConditionalOnBean(StringRedisTemplate.class)
-    public RedisTemplateLockExecutor redisTemplateLockExecutor() {
-        return new RedisTemplateLockExecutor();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public LockInterceptor lockInterceptor(LockTemplate lockTemplate) {
-        return new LockInterceptor(lockTemplate);
-    }
 
     @Conditional(ZookeeperCondition.class)
     @ConfigurationProperties(prefix = "spring.coordinate.zookeeper")
@@ -120,6 +115,34 @@ public class LockAutoConfiguration {
         @Bean
         public ZookeeperLockExecutor zookeeperLockExecutor() {
             return new ZookeeperLockExecutor();
+        }
+    }
+
+
+    @Bean
+    @ConditionalOnMissingBean
+    public LockTemplate lockTemplate() {
+        final LockTemplate lockTemplate = new LockTemplate();
+        this.getBeanThen(LockFailureStrategy.class, lockTemplate::setLockFailureStrategy);
+        this.getBeanThen(LockKeyBuilder.class, lockTemplate::setLockKeyBuilder);
+        return lockTemplate;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public LockInterceptor lockInterceptor() {
+        return new LockInterceptor();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public LockAnnotationAdvisor lockAnnotationAdvisor(LockInterceptor lockInterceptor) {
+        return new LockAnnotationAdvisor(lockInterceptor, Ordered.HIGHEST_PRECEDENCE);
+    }
+
+    private <T> void getBeanThen(Class<T> clazz, Consumer<T> consumer) {
+        if (this.applicationContext.getBeanNamesForType(clazz, false, false).length > 0) {
+            consumer.accept(this.applicationContext.getBean(clazz));
         }
     }
 }
