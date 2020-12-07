@@ -25,7 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -43,7 +42,7 @@ import java.util.Map;
 public class LockTemplate implements InitializingBean {
 
     private static final String PROCESS_ID = LockUtil.getLocalMAC() + LockUtil.getJvmPid();
-    private final Map<String, LockExecutor> executorMap = new LinkedHashMap<>();
+    private final Map<Class<? extends LockExecutor>, LockExecutor> executorMap = new LinkedHashMap<>();
     @Setter
     private Lock4jProperties properties;
     @Setter
@@ -52,6 +51,7 @@ public class LockTemplate implements InitializingBean {
     private LockFailureStrategy lockFailureStrategy;
     @Setter
     private List<LockExecutor> executors;
+
     private LockExecutor primaryExecutor;
 
     public LockTemplate() {
@@ -59,7 +59,7 @@ public class LockTemplate implements InitializingBean {
 
     public LockInfo lock(MethodInvocation invocation, Lock4j lock4j) throws Exception {
         long timeout = lock4j.acquireTimeout() == 0 ? properties.getAcquireTimeout() : lock4j.acquireTimeout();
-        long expire = lock4j.expire() == 0 ? properties.getExpireTime() : lock4j.expire();
+        long expire = lock4j.expire() == 0 ? properties.getExpire() : lock4j.expire();
         String key = lockKeyBuilder.buildKey(invocation, lock4j.keys());
         LockExecutor lockExecutor = obtainExecutor(lock4j.executor());
         long start = System.currentTimeMillis();
@@ -85,34 +85,32 @@ public class LockTemplate implements InitializingBean {
                 lockInfo.getLockInstance());
     }
 
-    protected LockExecutor obtainExecutor(String beanName) {
-        return executorMap.getOrDefault(beanName, primaryExecutor);
-    }
-
-    private String firstToLowerCase(String param) {
-        return param.substring(0, 1).toLowerCase() + param.substring(1, param.indexOf("Lock"));
+    protected LockExecutor obtainExecutor(Class<? extends LockExecutor> clazz) {
+        if (clazz == LockExecutor.class) {
+            return primaryExecutor;
+        }
+        final LockExecutor lockExecutor = executorMap.get(clazz);
+        Assert.notNull(lockExecutor, String.format("can not get bean type of %s", clazz));
+        return lockExecutor;
     }
 
     @Override
     public void afterPropertiesSet() throws Exception {
 
         Assert.isTrue(properties.getAcquireTimeout() > 0, "tryTimeout must more than 0");
-        Assert.isTrue(properties.getExpireTime() > 0, "expireTime must more than 0");
+        Assert.isTrue(properties.getExpire() > 0, "expireTime must more than 0");
         Assert.notEmpty(executors, "executors must have at least one");
 
         for (LockExecutor executor : executors) {
-            Class<? extends LockExecutor> executorClass = executor.getClass();
-            String simpleName = executorClass.getSimpleName();
-            String key = firstToLowerCase(simpleName);
-            executorMap.put(key, executor);
+            executorMap.put(executor.getClass(), executor);
         }
 
-        String primary = properties.getPrimary();
-        if (StringUtils.isEmpty(primary)) {
-            primaryExecutor = executors.get(0);
+        final Class<? extends LockExecutor> primaryExecutor = properties.getPrimaryExecutor();
+        if (null == primaryExecutor) {
+            this.primaryExecutor = executors.get(0);
         } else {
-            primaryExecutor = executorMap.get(primary);
-            Assert.notNull(primaryExecutor, "primaryExecutor must not be null");
+            this.primaryExecutor = executorMap.get(primaryExecutor);
+            Assert.notNull(this.primaryExecutor, "primaryExecutor must not be null");
         }
     }
 }

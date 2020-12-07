@@ -16,6 +16,9 @@
 
 package com.baomidou.lock.annotation;
 
+import com.baomidou.lock.executor.LockExecutor;
+import com.baomidou.lock.spring.boot.autoconfigure.Lock4jProperties;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -31,9 +34,11 @@ import java.lang.annotation.Target;
 public @interface Lock4j {
 
     /**
+     * {@link Lock4jProperties#primaryExecutor}
+     *
      * @return lock 执行器 可以指定执行器beanName
      */
-    String executor() default "";
+    Class<? extends LockExecutor> executor() default LockExecutor.class;
 
     /**
      * @return KEY 默认包名+方法名
