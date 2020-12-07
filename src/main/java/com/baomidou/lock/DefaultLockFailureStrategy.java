@@ -26,7 +26,7 @@ public class DefaultLockFailureStrategy implements LockFailureStrategy {
 
     @Override
     public void onLockFailure(long timeout, int acquireCount) {
-        log.debug("thread:{} acquire lock fail,timeout:{} acquireCount:{}", Thread.currentThread().getName(), timeout,
+        log.error("thread:{} acquire lock fail,timeout:{} acquireCount:{}", Thread.currentThread().getName(), timeout,
                 acquireCount);
         //throw new LockFailureException("request failed,please retry it.");
     }
