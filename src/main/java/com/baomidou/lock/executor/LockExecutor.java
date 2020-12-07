@@ -27,13 +27,13 @@ public interface LockExecutor {
     /**
      * 加锁
      *
-     * @param lockKey   锁标识
-     * @param lockValue 锁值
-     * @param timeout   获取锁超时时间
-     * @param expire    锁有效时间
+     * @param lockKey        锁标识
+     * @param lockValue      锁值
+     * @param expire         锁有效时间
+     * @param acquireTimeout 获取锁超时时间
      * @return 锁信息
      */
-    Object acquire(String lockKey, String lockValue, long timeout, long expire);
+    Object acquire(String lockKey, String lockValue, long expire, long acquireTimeout);
 
     /**
      * 解锁

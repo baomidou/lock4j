@@ -8,6 +8,7 @@
 - fix: 修复lockExecutor没有引入相关class的情况下抛class no found
 - feat: 新增不指定executor前提下,默认优先级redisson>redisTemplate>zookeeper
 - remove: 移除Lock4j注解里的LockFailureStrategy参数(自定义lock失败处理需要自行实现LockFailureStrategy接口并声明为spring bean)
+- feat: 支持声明式@Lock4j、编程式@Autowired LockTemplate
 
 # v2.0.1
 

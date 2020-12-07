@@ -51,7 +51,6 @@ public class DefaultLockKeyBuilder implements LockKeyBuilder {
         return sb.toString();
     }
 
-
     private String getSpelDefinitionKey(String[] definitionKeys, Method method, Object[] parameterValues) {
         EvaluationContext context = new MethodBasedEvaluationContext(null, method, parameterValues, NAME_DISCOVERER);
         List<String> definitionKeyList = new ArrayList<>(definitionKeys.length);

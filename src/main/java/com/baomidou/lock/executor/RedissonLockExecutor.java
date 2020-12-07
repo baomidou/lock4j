@@ -36,10 +36,10 @@ public class RedissonLockExecutor extends AbstractLockExecutor implements LockEx
     private final RedissonClient redissonClient;
 
     @Override
-    public Object acquire(String lockKey, String lockValue, long timeout, long expire) {
+    public Object acquire(String lockKey, String lockValue, long expire, long acquireTimeout) {
         try {
             final RLock lockInstance = redissonClient.getLock(lockKey);
-            final boolean locked = lockInstance.tryLock(timeout, expire, TimeUnit.MILLISECONDS);
+            final boolean locked = lockInstance.tryLock(acquireTimeout, expire, TimeUnit.MILLISECONDS);
             return obtainLockInstance(locked, lockInstance);
         } catch (InterruptedException e) {
             return null;

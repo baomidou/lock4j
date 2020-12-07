@@ -72,4 +72,13 @@ public class LockUtil {
         }
         throw new IllegalStateException("ManagementFactory error");
     }
+
+    /**
+     * 去除-的uuid
+     *
+     * @return simpleUUID
+     */
+    public static String simpleUUID() {
+        return UUID.randomUUID().toString().replace("-", "");
+    }
 }

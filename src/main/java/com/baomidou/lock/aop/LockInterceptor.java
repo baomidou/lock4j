@@ -17,14 +17,13 @@
 package com.baomidou.lock.aop;
 
 import com.baomidou.lock.LockInfo;
+import com.baomidou.lock.LockKeyBuilder;
 import com.baomidou.lock.LockTemplate;
 import com.baomidou.lock.annotation.Lock4j;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 
 /**
@@ -33,28 +32,31 @@ import org.springframework.context.ApplicationContextAware;
  * @author zengzhihong TaoYu
  */
 @Slf4j
-public class LockInterceptor implements MethodInterceptor, ApplicationContextAware {
+@RequiredArgsConstructor
+public class LockInterceptor implements MethodInterceptor {
 
-    private LockTemplate lockTemplate;
+    private final LockTemplate lockTemplate;
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.lockTemplate = applicationContext.getBean(LockTemplate.class);
-    }
+    private final LockKeyBuilder lockKeyBuilder;
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         LockInfo lockInfo = null;
         try {
             Lock4j lock4j = invocation.getMethod().getAnnotation(Lock4j.class);
-            lockInfo = lockTemplate.lock(invocation, lock4j);
+            String key = lockKeyBuilder.buildKey(invocation, lock4j.keys());
+            lockInfo = lockTemplate.lock(key, lock4j.expire(), lock4j.acquireTimeout(), lock4j.executor());
             if (null != lockInfo) {
                 return invocation.proceed();
             }
             return null;
         } finally {
             if (null != lockInfo) {
-                lockTemplate.releaseLock(lockInfo);
+                final boolean releaseLock = lockTemplate.releaseLock(lockInfo);
+                if (!releaseLock) {
+                    log.error("releaseLock fail,lockKey={},lockValue={}", lockInfo.getLockKey(),
+                            lockInfo.getLockValue());
+                }
             }
         }
     }

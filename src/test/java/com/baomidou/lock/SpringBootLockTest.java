@@ -18,6 +18,7 @@ package com.baomidou.lock;
 
 import com.baomidou.lock.model.User;
 import com.baomidou.lock.service.UserService;
+import lombok.SneakyThrows;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,8 +45,9 @@ public class SpringBootLockTest {
         SpringApplication.run(SpringBootLockTest.class, args);
     }
 
+    @SneakyThrows
     @Test
-    public void simple1Test() throws Exception {
+    public void simple1Test() {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         Runnable task = new Runnable() {
             public void run() {
@@ -62,8 +64,9 @@ public class SpringBootLockTest {
         Thread.sleep(1000000);
     }
 
+    @SneakyThrows
     @Test
-    public void simple2Test() throws Exception {
+    public void simple2Test() {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         Runnable task = new Runnable() {
             public void run() {
@@ -80,8 +83,9 @@ public class SpringBootLockTest {
         Thread.sleep(3000);
     }
 
+    @SneakyThrows
     @Test
-    public void spel1Test() throws Exception {
+    public void spel1Test() {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         Runnable task = new Runnable() {
             public void run() {
@@ -98,8 +102,9 @@ public class SpringBootLockTest {
         Thread.sleep(3000);
     }
 
+    @SneakyThrows
     @Test
-    public void spel2Test() throws Exception {
+    public void spel2Test() {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         Runnable task = new Runnable() {
             public void run() {
@@ -114,5 +119,25 @@ public class SpringBootLockTest {
             executorService.submit(task);
         }
         Thread.sleep(30000);
+    }
+
+    /**
+     * 编程式锁
+     */
+    @SneakyThrows
+    @Test
+    public void programmaticLock() {
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        Runnable task = new Runnable() {
+            public void run() {
+                userService.programmaticLock("admin");
+            }
+        };
+        for (int i = 0; i < 100; i++) {
+            executorService.submit(task);
+        }
+        Thread.sleep(30000);
+
     }
 }

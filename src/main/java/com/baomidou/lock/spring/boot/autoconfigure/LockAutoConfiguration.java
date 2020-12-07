@@ -64,11 +64,9 @@ public class LockAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public LockTemplate lockTemplate(LockKeyBuilder lockKeyBuilder, LockFailureStrategy lockFailureStrategy,
-                                     List<LockExecutor> executors) {
+    public LockTemplate lockTemplate(LockFailureStrategy lockFailureStrategy, List<LockExecutor> executors) {
         LockTemplate lockTemplate = new LockTemplate();
         lockTemplate.setProperties(properties);
-        lockTemplate.setLockKeyBuilder(lockKeyBuilder);
         lockTemplate.setLockFailureStrategy(lockFailureStrategy);
         lockTemplate.setExecutors(executors);
         return lockTemplate;
@@ -88,8 +86,8 @@ public class LockAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public LockInterceptor lockInterceptor() {
-        return new LockInterceptor();
+    public LockInterceptor lockInterceptor(LockTemplate lockTemplate, LockKeyBuilder lockKeyBuilder) {
+        return new LockInterceptor(lockTemplate, lockKeyBuilder);
     }
 
     @Bean

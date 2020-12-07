@@ -36,7 +36,7 @@ public class ZookeeperLockExecutor extends AbstractLockExecutor implements LockE
     private final CuratorFramework curatorFramework;
 
     @Override
-    public Object acquire(String lockKey, String lockValue, long timeout, long expire) {
+    public Object acquire(String lockKey, String lockValue, long expire, long acquireTimeout) {
         if (!CuratorFrameworkState.STARTED.equals(curatorFramework.getState())) {
             log.warn("instance must be started before calling this method");
             return false;
@@ -44,7 +44,7 @@ public class ZookeeperLockExecutor extends AbstractLockExecutor implements LockE
         String nodePath = "/curator/lock4j/%s";
         try {
             InterProcessMutex mutex = new InterProcessMutex(curatorFramework, String.format(nodePath, lockKey));
-            final boolean locked = mutex.acquire(timeout, TimeUnit.SECONDS);
+            final boolean locked = mutex.acquire(acquireTimeout, TimeUnit.SECONDS);
             return obtainLockInstance(locked, mutex);
         } catch (Exception e) {
             return null;

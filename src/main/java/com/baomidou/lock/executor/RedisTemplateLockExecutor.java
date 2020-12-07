@@ -42,7 +42,7 @@ public class RedisTemplateLockExecutor extends AbstractLockExecutor implements L
     private final StringRedisTemplate redisTemplate;
 
     @Override
-    public Object acquire(String lockKey, String lockValue, long timeout, long expire) {
+    public Object acquire(String lockKey, String lockValue, long expire, long acquireTimeout) {
         Object lock = redisTemplate.execute(SCRIPT_LOCK,
                 redisTemplate.getStringSerializer(),
                 redisTemplate.getStringSerializer(),

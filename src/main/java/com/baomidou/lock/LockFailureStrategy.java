@@ -21,6 +21,9 @@ package com.baomidou.lock;
  */
 public interface LockFailureStrategy {
 
-    void onLockFailure(long timeout, int acquireCount);
+    /**
+     * 锁失败事件
+     */
+    void onLockFailure(String key, long acquireTimeout, int acquireCount);
 
 }

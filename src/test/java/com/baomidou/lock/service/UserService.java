@@ -16,13 +16,19 @@
 
 package com.baomidou.lock.service;
 
+import com.baomidou.lock.LockInfo;
+import com.baomidou.lock.LockTemplate;
 import com.baomidou.lock.annotation.Lock4j;
 import com.baomidou.lock.executor.RedissonLockExecutor;
 import com.baomidou.lock.model.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
+
+    @Autowired
+    LockTemplate lockTemplate;
 
     private int counter = 1;
 
@@ -53,6 +59,27 @@ public class UserService {
             e.printStackTrace();
         }
         return user;
+    }
+
+    public void programmaticLock(String userId) {
+
+        // 各种查询操作 不上锁
+        // ...
+        // 获取锁
+        final LockInfo lockInfo = lockTemplate.lock(userId, 30000L, 5000L, RedissonLockExecutor.class);
+        if (null == lockInfo) {
+            throw new RuntimeException("业务处理中,请稍后再试");
+        }
+        // 获取锁成功，处理业务
+        try {
+            System.out.println("执行简单方法1 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
+        } finally {
+            //释放锁
+            lockTemplate.releaseLock(lockInfo);
+        }
+        //结束
+
+
     }
 
 }

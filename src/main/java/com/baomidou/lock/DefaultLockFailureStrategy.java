@@ -25,9 +25,9 @@ import lombok.extern.slf4j.Slf4j;
 public class DefaultLockFailureStrategy implements LockFailureStrategy {
 
     @Override
-    public void onLockFailure(long timeout, int acquireCount) {
-        log.error("thread:{} acquire lock fail,timeout:{} acquireCount:{}", Thread.currentThread().getName(), timeout,
-                acquireCount);
+    public void onLockFailure(String key, long acquireTimeout, int acquireCount) {
+        log.error("thread:{} acquire lock fail,key:{} acquireTimeout:{}ms", Thread.currentThread().getName(), key,
+                acquireTimeout);
         //throw new LockFailureException("request failed,please retry it.");
     }
 }

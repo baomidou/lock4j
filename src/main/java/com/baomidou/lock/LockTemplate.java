@@ -16,19 +16,19 @@
 
 package com.baomidou.lock;
 
-import com.baomidou.lock.annotation.Lock4j;
+import com.baomidou.lock.exception.LockException;
 import com.baomidou.lock.executor.LockExecutor;
 import com.baomidou.lock.spring.boot.autoconfigure.Lock4jProperties;
 import com.baomidou.lock.util.LockUtil;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -41,12 +41,9 @@ import java.util.Map;
 @Slf4j
 public class LockTemplate implements InitializingBean {
 
-    private static final String PROCESS_ID = LockUtil.getLocalMAC() + LockUtil.getJvmPid();
     private final Map<Class<? extends LockExecutor>, LockExecutor> executorMap = new LinkedHashMap<>();
     @Setter
     private Lock4jProperties properties;
-    @Setter
-    private LockKeyBuilder lockKeyBuilder;
     @Setter
     private LockFailureStrategy lockFailureStrategy;
     @Setter
@@ -57,36 +54,55 @@ public class LockTemplate implements InitializingBean {
     public LockTemplate() {
     }
 
-    public LockInfo lock(MethodInvocation invocation, Lock4j lock4j) throws Exception {
-        long timeout = lock4j.acquireTimeout() == 0 ? properties.getAcquireTimeout() : lock4j.acquireTimeout();
-        long expire = lock4j.expire() == 0 ? properties.getExpire() : lock4j.expire();
-        String key = lockKeyBuilder.buildKey(invocation, lock4j.keys());
-        LockExecutor lockExecutor = obtainExecutor(lock4j.executor());
-        long start = System.currentTimeMillis();
+    public LockInfo lock(String key, long expire, long acquireTimeout) {
+        return lock(key, expire, acquireTimeout, null);
+    }
+
+    /**
+     * 加锁方法
+     *
+     * @param key            锁key 同一个key只能被一个客户端持有
+     * @param expire         过期时间(ms) 防止死锁
+     * @param acquireTimeout 尝试获取锁超时时间(ms)
+     * @param executor       执行器
+     * @return 加锁成功返回锁信息 失败返回null
+     */
+    public LockInfo lock(String key, long expire, long acquireTimeout, Class<? extends LockExecutor> executor) {
+        expire = expire == 0 ? properties.getExpire() : expire;
+        acquireTimeout = acquireTimeout == 0 ? properties.getAcquireTimeout() : acquireTimeout;
+        LockExecutor lockExecutor = obtainExecutor(executor);
         int acquireCount = 0;
-        String value = PROCESS_ID + Thread.currentThread().getId();
-        while (System.currentTimeMillis() - start < timeout) {
-            acquireCount++;
-            Object lockInstance = lockExecutor.acquire(key, value, timeout, expire);
-            if (null != lockInstance) {
-                return new LockInfo(key, value, expire, timeout, acquireCount, lockInstance,
-                        lockExecutor);
+        String value = LockUtil.simpleUUID();
+        long start = System.currentTimeMillis();
+        try {
+            while (System.currentTimeMillis() - start < acquireTimeout) {
+                acquireCount++;
+                Object lockInstance = lockExecutor.acquire(key, value, expire, acquireTimeout);
+                if (null != lockInstance) {
+                    return new LockInfo(key, value, expire, acquireTimeout, acquireCount, lockInstance,
+                            lockExecutor);
+                }
+                TimeUnit.MILLISECONDS.sleep(100);
             }
-            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            log.error("lock error", e);
+            throw new LockException();
         }
-        if (null != lockFailureStrategy) {
-            lockFailureStrategy.onLockFailure(timeout, acquireCount);
-        }
+        // lock failure
+        lockFailureStrategy.onLockFailure(key, acquireTimeout, acquireCount);
         return null;
     }
 
     public boolean releaseLock(LockInfo lockInfo) {
+        if (null == lockInfo) {
+            return false;
+        }
         return lockInfo.getLockExecutor().releaseLock(lockInfo.getLockKey(), lockInfo.getLockValue(),
                 lockInfo.getLockInstance());
     }
 
     protected LockExecutor obtainExecutor(Class<? extends LockExecutor> clazz) {
-        if (clazz == LockExecutor.class) {
+        if (null == clazz || clazz == LockExecutor.class) {
             return primaryExecutor;
         }
         final LockExecutor lockExecutor = executorMap.get(clazz);
