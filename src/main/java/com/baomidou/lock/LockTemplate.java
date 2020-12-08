@@ -78,7 +78,15 @@ public class LockTemplate implements InitializingBean {
         int acquireCount = 0;
         String value = LockUtil.simpleUUID();
         long start = System.currentTimeMillis();
+        long retryInterval = properties.getRetryInterval();
         try {
+            /**
+             * 防止重试时间大于超时时间
+             */
+            if (retryInterval > acquireTimeout) {
+                log.error("retryInterval must less than acquireTimeout");
+                throw new LockException("retryInterval must less than acquireTimeout");
+            }
             while (System.currentTimeMillis() - start < acquireTimeout) {
                 acquireCount++;
                 Object lockInstance = lockExecutor.acquire(key, value, expire, acquireTimeout);
@@ -86,7 +94,7 @@ public class LockTemplate implements InitializingBean {
                     return new LockInfo(key, value, expire, acquireTimeout, acquireCount, lockInstance,
                             lockExecutor);
                 }
-                TimeUnit.MILLISECONDS.sleep(100);
+                TimeUnit.MILLISECONDS.sleep(retryInterval);
             }
         } catch (InterruptedException e) {
             log.error("lock error", e);
@@ -119,6 +127,7 @@ public class LockTemplate implements InitializingBean {
 
         Assert.isTrue(properties.getAcquireTimeout() > 0, "tryTimeout must more than 0");
         Assert.isTrue(properties.getExpire() > 0, "expireTime must more than 0");
+        Assert.isTrue(properties.getRetryInterval() >= 0, "retryInterval must more than 0");
         Assert.notEmpty(executors, "executors must have at least one");
 
         for (LockExecutor executor : executors) {

@@ -21,6 +21,11 @@ public class Lock4jProperties {
     private Long acquireTimeout = 3000L;
 
     /**
+     * 获取锁失败时重试时间间隔 单位：毫秒
+     */
+    private Long retryInterval = 100L;
+
+    /**
      * 默认执行器，不设置默认取容器第一个(默认注入顺序，redisson>redisTemplate>zookeeper)
      */
     private Class<? extends LockExecutor> primaryExecutor;
