@@ -54,6 +54,10 @@ public class LockTemplate implements InitializingBean {
     public LockTemplate() {
     }
 
+    public LockInfo lock(String key) {
+        return lock(key, 0, 0);
+    }
+
     public LockInfo lock(String key, long expire, long acquireTimeout) {
         return lock(key, expire, acquireTimeout, null);
     }
