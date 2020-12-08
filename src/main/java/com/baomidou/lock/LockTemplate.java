@@ -74,19 +74,16 @@ public class LockTemplate implements InitializingBean {
     public LockInfo lock(String key, long expire, long acquireTimeout, Class<? extends LockExecutor> executor) {
         expire = expire == 0 ? properties.getExpire() : expire;
         acquireTimeout = acquireTimeout == 0 ? properties.getAcquireTimeout() : acquireTimeout;
+        long retryInterval = properties.getRetryInterval();
+        // 防止重试时间大于超时时间
+        if (retryInterval >= acquireTimeout) {
+            log.warn("retryInterval more than acquireTimeout,please check your configuration");
+        }
         LockExecutor lockExecutor = obtainExecutor(executor);
         int acquireCount = 0;
         String value = LockUtil.simpleUUID();
         long start = System.currentTimeMillis();
-        long retryInterval = properties.getRetryInterval();
         try {
-            /**
-             * 防止重试时间大于超时时间
-             */
-            if (retryInterval > acquireTimeout) {
-                log.error("retryInterval must less than acquireTimeout");
-                throw new LockException("retryInterval must less than acquireTimeout");
-            }
             while (System.currentTimeMillis() - start < acquireTimeout) {
                 acquireCount++;
                 Object lockInstance = lockExecutor.acquire(key, value, expire, acquireTimeout);

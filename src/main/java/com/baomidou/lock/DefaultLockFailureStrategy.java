@@ -16,6 +16,7 @@
 
 package com.baomidou.lock;
 
+import com.baomidou.lock.exception.LockFailureException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -28,6 +29,6 @@ public class DefaultLockFailureStrategy implements LockFailureStrategy {
     public void onLockFailure(String key, long acquireTimeout, int acquireCount) {
         log.error("thread:{} acquire lock fail,key:{} acquireTimeout:{}ms", Thread.currentThread().getName(), key,
                 acquireTimeout);
-        //throw new LockFailureException("request failed,please retry it.");
+        throw new LockFailureException("request failed,please retry it.");
     }
 }
