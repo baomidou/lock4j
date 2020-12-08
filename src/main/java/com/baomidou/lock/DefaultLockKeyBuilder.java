@@ -36,7 +36,7 @@ import java.util.List;
  */
 public class DefaultLockKeyBuilder implements LockKeyBuilder {
 
-    private static final String DEFAULT_KEY_PREFIX = "lock4j:";
+    private static final String DEFAULT_KEY_PREFIX = "lock4j";
 
     private static final ParameterNameDiscoverer NAME_DISCOVERER = new DefaultParameterNameDiscoverer();
 
@@ -46,7 +46,7 @@ public class DefaultLockKeyBuilder implements LockKeyBuilder {
     public String buildKey(MethodInvocation invocation, String[] definitionKeys) {
         StringBuilder sb = new StringBuilder(getKeyPrefix());
         Method method = invocation.getMethod();
-        sb.append(method.getDeclaringClass().getName()).append(".").append(method.getName()).append("#");
+        sb.append(":").append(method.getDeclaringClass().getName()).append(".").append(method.getName()).append("#");
         if (definitionKeys.length > 1 || !"".equals(definitionKeys[0])) {
             sb.append(getSpelDefinitionKey(definitionKeys, method, invocation.getArguments()));
         }
