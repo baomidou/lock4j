@@ -31,15 +31,15 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class ZookeeperLockExecutor extends AbstractLockExecutor implements LockExecutor {
+public class ZookeeperLockExecutor extends AbstractLockExecutor<InterProcessMutex> implements LockExecutor<InterProcessMutex> {
 
     private final CuratorFramework curatorFramework;
 
     @Override
-    public Object acquire(String lockKey, String lockValue, long expire, long acquireTimeout) {
+    public InterProcessMutex acquire(String lockKey, String lockValue, long expire, long acquireTimeout) {
         if (!CuratorFrameworkState.STARTED.equals(curatorFramework.getState())) {
             log.warn("instance must be started before calling this method");
-            return false;
+            return null;
         }
         String nodePath = "/curator/lock4j/%s";
         try {
@@ -52,9 +52,10 @@ public class ZookeeperLockExecutor extends AbstractLockExecutor implements LockE
     }
 
     @Override
-    public boolean releaseLock(String key, String value, Object lockInstance) {
+    public boolean releaseLock(String key, String value, InterProcessMutex lockInstance) {
         try {
-            ((InterProcessMutex) lockInstance).release();
+            final InterProcessMutex instance = lockInstance;
+            instance.release();
         } catch (Exception e) {
             log.warn("zookeeper lock release error", e);
             return false;

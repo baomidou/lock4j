@@ -31,7 +31,7 @@ import java.util.Collections;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class RedisTemplateLockExecutor extends AbstractLockExecutor implements LockExecutor {
+public class RedisTemplateLockExecutor extends AbstractLockExecutor<String> implements LockExecutor<String> {
 
     private static final RedisScript<String> SCRIPT_LOCK = new DefaultRedisScript<>("return redis.call('set',KEYS[1]," +
             "ARGV[1],'NX','PX',ARGV[2])", String.class);
@@ -42,8 +42,8 @@ public class RedisTemplateLockExecutor extends AbstractLockExecutor implements L
     private final StringRedisTemplate redisTemplate;
 
     @Override
-    public Object acquire(String lockKey, String lockValue, long expire, long acquireTimeout) {
-        Object lock = redisTemplate.execute(SCRIPT_LOCK,
+    public String acquire(String lockKey, String lockValue, long expire, long acquireTimeout) {
+        String lock = redisTemplate.execute(SCRIPT_LOCK,
                 redisTemplate.getStringSerializer(),
                 redisTemplate.getStringSerializer(),
                 Collections.singletonList(lockKey),
@@ -53,12 +53,12 @@ public class RedisTemplateLockExecutor extends AbstractLockExecutor implements L
     }
 
     @Override
-    public boolean releaseLock(String key, String value, Object lockInstance) {
-        Object releaseResult = redisTemplate.execute(SCRIPT_UNLOCK,
+    public boolean releaseLock(String key, String value, String lockInstance) {
+        String releaseResult = redisTemplate.execute(SCRIPT_UNLOCK,
                 redisTemplate.getStringSerializer(),
                 redisTemplate.getStringSerializer(),
                 Collections.singletonList(key), value);
-        return Boolean.parseBoolean(releaseResult.toString());
+        return Boolean.parseBoolean(releaseResult);
     }
 
 }

@@ -22,7 +22,7 @@ package com.baomidou.lock.executor;
  *
  * @author zengzhihong TaoYu
  */
-public interface LockExecutor {
+public interface LockExecutor<T> {
 
     /**
      * 加锁
@@ -33,7 +33,7 @@ public interface LockExecutor {
      * @param acquireTimeout 获取锁超时时间
      * @return 锁信息
      */
-    Object acquire(String lockKey, String lockValue, long expire, long acquireTimeout);
+    T acquire(String lockKey, String lockValue, long expire, long acquireTimeout);
 
     /**
      * 解锁
@@ -49,6 +49,6 @@ public interface LockExecutor {
      * @param lockInstance 锁实例
      * @return 是否释放成功
      */
-    boolean releaseLock(String key, String value, Object lockInstance);
+    boolean releaseLock(String key, String value, T lockInstance);
 
 }

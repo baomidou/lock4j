@@ -31,12 +31,12 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class RedissonLockExecutor extends AbstractLockExecutor implements LockExecutor {
+public class RedissonLockExecutor extends AbstractLockExecutor<RLock> implements LockExecutor<RLock> {
 
     private final RedissonClient redissonClient;
 
     @Override
-    public Object acquire(String lockKey, String lockValue, long expire, long acquireTimeout) {
+    public RLock acquire(String lockKey, String lockValue, long expire, long acquireTimeout) {
         try {
             final RLock lockInstance = redissonClient.getLock(lockKey);
             final boolean locked = lockInstance.tryLock(acquireTimeout, expire, TimeUnit.MILLISECONDS);
@@ -47,8 +47,8 @@ public class RedissonLockExecutor extends AbstractLockExecutor implements LockEx
     }
 
     @Override
-    public boolean releaseLock(String key, String value, Object lockInstance) {
-        final RLock instance = (RLock) lockInstance;
+    public boolean releaseLock(String key, String value, RLock lockInstance) {
+        final RLock instance = lockInstance;
         if (instance.isHeldByCurrentThread()) {
             try {
                 return instance.forceUnlockAsync().get();
