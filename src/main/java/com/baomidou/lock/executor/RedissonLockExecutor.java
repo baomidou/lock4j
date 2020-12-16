@@ -48,10 +48,9 @@ public class RedissonLockExecutor extends AbstractLockExecutor<RLock> implements
 
     @Override
     public boolean releaseLock(String key, String value, RLock lockInstance) {
-        final RLock instance = lockInstance;
-        if (instance.isHeldByCurrentThread()) {
+        if (lockInstance.isHeldByCurrentThread()) {
             try {
-                return instance.forceUnlockAsync().get();
+                return lockInstance.forceUnlockAsync().get();
             } catch (ExecutionException | InterruptedException e) {
                 return false;
             }

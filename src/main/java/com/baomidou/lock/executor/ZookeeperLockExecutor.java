@@ -54,8 +54,7 @@ public class ZookeeperLockExecutor extends AbstractLockExecutor<InterProcessMute
     @Override
     public boolean releaseLock(String key, String value, InterProcessMutex lockInstance) {
         try {
-            final InterProcessMutex instance = lockInstance;
-            instance.release();
+            lockInstance.release();
         } catch (Exception e) {
             log.warn("zookeeper lock release error", e);
             return false;
