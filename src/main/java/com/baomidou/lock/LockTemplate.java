@@ -38,6 +38,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author zengzhihong TaoYu
  */
+@SuppressWarnings("rawtypes")
 @Slf4j
 public class LockTemplate implements InitializingBean {
 
@@ -102,6 +103,7 @@ public class LockTemplate implements InitializingBean {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     public boolean releaseLock(LockInfo lockInfo) {
         if (null == lockInfo) {
             return false;
