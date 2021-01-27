@@ -44,7 +44,7 @@ public class ZookeeperLockExecutor extends AbstractLockExecutor<InterProcessMute
         String nodePath = "/curator/lock4j/%s";
         try {
             InterProcessMutex mutex = new InterProcessMutex(curatorFramework, String.format(nodePath, lockKey));
-            final boolean locked = mutex.acquire(acquireTimeout, TimeUnit.SECONDS);
+            final boolean locked = mutex.acquire(acquireTimeout, TimeUnit.MILLISECONDS);
             return obtainLockInstance(locked, mutex);
         } catch (Exception e) {
             return null;
