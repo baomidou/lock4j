@@ -1,4 +1,12 @@
+# v2.2.0
+
+- refactor: 项目结构重大调整
+- fix: ZookeeperLockExecutor acquireTimeout时间单位错误
+- update: 支持yml配置文件使用 - 替代驼峰字段识别 example: zkServers、zk-servers都可以识别
+- update: Executor实现代码优化
+
 # v2.1.0
+
 - feat: 新增Lock4jProperties支持全局配置锁过期、获取锁超时时间、默认锁执行器等
 - update: 修改Lock4j注解里的lockClient参数名为executor
 - update: 新增锁执行器支持自定义扩展,支持方法级别配置executor
