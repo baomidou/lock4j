@@ -9,8 +9,8 @@
 </p>
 
 <p align="center">
-    <a href="http://mvnrepository.com/artifact/com.baomidou/lock4j-spring-boot-starter" target="_blank">
-        <img src="https://maven-badges.herokuapp.com/maven-central/com.baomidou/lock4j-spring-boot-starter/badge.svg" >
+    <a href="http://mvnrepository.com/artifact/com.baomidou/lock4j" target="_blank">
+        <img src="https://maven-badges.herokuapp.com/maven-central/com.baomidou/lock4j/badge.svg" >
     </a>
     <a href="http://www.apache.org/licenses/LICENSE-2.0.html" target="_blank">
         <img src="http://img.shields.io/:license-apache-brightgreen.svg" >
@@ -28,7 +28,7 @@
 
 ## 简介
 
-lock4j-spring-boot-starter是一个分布式锁组件，其提供了多种不同的支持以满足不同性能和环境的需求。
+lock4j是一个分布式锁组件，其提供了多种不同的支持以满足不同性能和环境的需求。
 
 立志打造一个简单但富有内涵的分布式锁组件。
 
@@ -39,31 +39,26 @@ lock4j-spring-boot-starter是一个分布式锁组件，其提供了多种不同
 
 ## 如何使用
 
-1. 引入相关依赖。
+1. 引入相关依赖(支持同时存在,不同方法不同锁实现)。
 
 ```xml
-<dependency>
-    <groupId>com.baomidou</groupId>
-    <artifactId>lock4j-spring-boot-starter</artifactId>
-    <version>${version}</version>
-</dependency>
-
 <!--若使用redisTemplate作为分布式锁底层，则需要引入-->
 <dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-data-redis</artifactId>
+    <groupId>com.baomidou</groupId>
+    <artifactId>lock4j-redis-template-spring-boot-starter</artifactId>
+    <version>latest.version</version>
 </dependency>
- <!--若使用redisson作为分布式锁底层，则需要引入-->
+        <!--若使用redisson作为分布式锁底层，则需要引入-->
 <dependency>
-    <groupId>org.redisson</groupId>
-    <artifactId>redisson-spring-boot-starter</artifactId>
-    <version>3.13.6</version>
+<groupId>com.baomidou</groupId>
+<artifactId>lock4j-redisson-spring-boot-starter</artifactId>
+<version>latest.version</version>
 </dependency>
-<!--若使用zookeeper作为分布式锁底层，则需要引入-->
+        <!--若使用zookeeper作为分布式锁底层，则需要引入-->
 <dependency>
-    <groupId>org.apache.curator</groupId>
-    <artifactId>curator-recipes</artifactId>
-    <version>5.1.0</version>
+<groupId>com.baomidou</groupId>
+<artifactId>lock4j-zookeeper-spring-boot-starter</artifactId>
+<version>latest.version</version>
 </dependency>
 ```
 
@@ -82,16 +77,17 @@ spring:
 3. 在需要分布式的地方使用Lock4j注解。
 
 ```java
+
 @Service
 public class DemoService {
 
     //默认获取锁超时3秒，30秒锁过期
     @Lock4j
     public void simple() {
-    	//do something
+        //do something
     }
-    
-	//完全配置，支持spel
+
+    //完全配置，支持spel
     @Lock4j(keys = {"#user.id", "#user.name"}, expire = 60000, acquireTimeout = 1000)
     public User customMethod(User user) {
         return user;
@@ -114,10 +110,11 @@ lock4j:
 2. 自定义执行器。
 
 ```java
+
 @Service
 public class DemoService {
-    
-	//可在方法级指定使用某种执行器，若自己实现的需要提前注入到Spring。
+
+    //可在方法级指定使用某种执行器，若自己实现的需要提前注入到Spring。
     @Lock4j(executor = RedissonLockExecutor.class)
     public Boolean test() {
         return "true";
@@ -130,6 +127,7 @@ public class DemoService {
 默认的锁key生成器为 `com.baomidou.lock.DefaultLockKeyBuilder` 。
 
 ```java
+
 @Component
 public class MyLockKeyBuilder extends DefaultLockKeyBuilder {
 
@@ -145,6 +143,7 @@ public class MyLockKeyBuilder extends DefaultLockKeyBuilder {
 默认的锁获取失败策略为 `com.baomidou.lock.DefaultLockFailureStrategy` 。
 
 ```java
+
 @Component
 public class MyLockFailureStrategy implements LockFailureStrategy {
 

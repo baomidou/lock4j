@@ -1,0 +1,3 @@
+#配置自定义Starter的自动化配置
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.baomidou.lock.spring.boot.autoconfigure.RedisTemplateLockAutoConfiguration
