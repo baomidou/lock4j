@@ -19,7 +19,7 @@ package com.baomidou.lock.executor;
 /**
  * @author zengzhihong
  */
-public abstract class AbstractLockExecutor<T> {
+public abstract class AbstractLockExecutor<T> implements LockExecutor<T> {
 
     protected T obtainLockInstance(boolean locked, T lockInstance) {
         return locked ? lockInstance : null;

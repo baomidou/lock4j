@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class RedissonLockExecutor extends AbstractLockExecutor<RLock> implements LockExecutor<RLock> {
+public class RedissonLockExecutor extends AbstractLockExecutor<RLock> {
 
     private final RedissonClient redissonClient;
 

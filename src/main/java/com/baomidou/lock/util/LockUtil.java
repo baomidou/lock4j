@@ -28,6 +28,10 @@ import java.util.UUID;
  */
 public class LockUtil {
 
+    public static String getLockId() {
+        return simpleUUID();
+    }
+
     /**
      * 获取本机网卡地址
      *

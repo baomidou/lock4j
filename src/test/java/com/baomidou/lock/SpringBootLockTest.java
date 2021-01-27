@@ -50,6 +50,7 @@ public class SpringBootLockTest {
     public void simple1Test() {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         Runnable task = new Runnable() {
+            @Override
             public void run() {
                 try {
                     userService.simple1();
@@ -69,6 +70,7 @@ public class SpringBootLockTest {
     public void simple2Test() {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         Runnable task = new Runnable() {
+            @Override
             public void run() {
                 try {
                     userService.simple2("xxx_key");
@@ -88,6 +90,7 @@ public class SpringBootLockTest {
     public void spel1Test() {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         Runnable task = new Runnable() {
+            @Override
             public void run() {
                 try {
                     userService.method1(new User(RANDOM.nextLong(), "苞米豆"));
@@ -107,6 +110,7 @@ public class SpringBootLockTest {
     public void spel2Test() {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         Runnable task = new Runnable() {
+            @Override
             public void run() {
                 try {
                     userService.method2(new User(1L, "苞米豆"));
@@ -127,9 +131,9 @@ public class SpringBootLockTest {
     @SneakyThrows
     @Test
     public void programmaticLock() {
-
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         Runnable task = new Runnable() {
+            @Override
             public void run() {
                 userService.programmaticLock("admin");
             }
@@ -138,6 +142,13 @@ public class SpringBootLockTest {
             executorService.submit(task);
         }
         Thread.sleep(30000);
-
     }
+
+    @Test
+    public void reentrantLock() {
+        userService.reentrantMethod1();
+        userService.reentrantMethod1();
+        userService.reentrantMethod2();
+    }
+
 }

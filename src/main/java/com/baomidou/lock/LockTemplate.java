@@ -138,7 +138,7 @@ public class LockTemplate implements InitializingBean {
             this.primaryExecutor = executors.get(0);
         } else {
             this.primaryExecutor = executorMap.get(primaryExecutor);
-            Assert.notNull(this.primaryExecutor, "primaryExecutor must not be null");
+            Assert.notNull(this.primaryExecutor, "primaryExecutor must be not null");
         }
     }
 }

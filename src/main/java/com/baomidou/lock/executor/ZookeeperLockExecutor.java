@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class ZookeeperLockExecutor extends AbstractLockExecutor<InterProcessMutex> implements LockExecutor<InterProcessMutex> {
+public class ZookeeperLockExecutor extends AbstractLockExecutor<InterProcessMutex> {
 
     private final CuratorFramework curatorFramework;
 

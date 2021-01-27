@@ -99,7 +99,8 @@ public class LockAutoConfiguration {
 
     @Configuration
     @ConditionalOnClass(RedisOperations.class)
-    static class RedisExecutorAutoConfiguration {
+    static class RedisTemplateLockExecutorAutoConfiguration {
+
         @Bean
         @Order(200)
         public RedisTemplateLockExecutor redisTemplateLockExecutor(StringRedisTemplate stringRedisTemplate) {
@@ -109,7 +110,7 @@ public class LockAutoConfiguration {
 
     @Configuration
     @ConditionalOnClass(Redisson.class)
-    static class RedissonExecutorAutoConfiguration {
+    static class RedissonLockExecutorAutoConfiguration {
         @Bean
         @Order(100)
         public RedissonLockExecutor redissonLockExecutor(RedissonClient redissonClient) {
@@ -132,18 +133,16 @@ public class LockAutoConfiguration {
 
         private int maxRetries = 3;
 
-        @Bean(destroyMethod = "close")
+        @Bean(initMethod = "start", destroyMethod = "close")
         @ConditionalOnMissingBean(CuratorFramework.class)
         public CuratorFramework curatorFramework() {
             RetryPolicy retryPolicy = new ExponentialBackoffRetry(this.baseSleepTimeMs, this.maxRetries);
-            CuratorFramework curatorFramework = CuratorFrameworkFactory.builder()
+            return CuratorFrameworkFactory.builder()
                     .connectString(this.zkServers)
                     .sessionTimeoutMs(this.sessionTimeout)
                     .connectionTimeoutMs(this.connectionTimeout)
                     .retryPolicy(retryPolicy)
                     .build();
-            curatorFramework.start();
-            return curatorFramework;
         }
 
         @Bean

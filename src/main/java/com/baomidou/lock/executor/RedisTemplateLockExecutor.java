@@ -31,7 +31,7 @@ import java.util.Collections;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class RedisTemplateLockExecutor extends AbstractLockExecutor<String> implements LockExecutor<String> {
+public class RedisTemplateLockExecutor extends AbstractLockExecutor<String> {
 
     private static final RedisScript<String> SCRIPT_LOCK = new DefaultRedisScript<>("return redis.call('set',KEYS[1]," +
             "ARGV[1],'NX','PX',ARGV[2])", String.class);

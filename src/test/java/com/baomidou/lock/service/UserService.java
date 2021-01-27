@@ -78,8 +78,19 @@ public class UserService {
             lockTemplate.releaseLock(lockInfo);
         }
         //结束
+    }
 
 
+    @Lock4j(keys = "1", expire = 60000)
+    public void reentrantMethod1() {
+        System.out.println("reentrantMethod1" + getClass());
+        counter++;
+    }
+
+    @Lock4j(keys = "1")
+    public void reentrantMethod2() {
+        System.out.println("reentrantMethod2" + getClass());
+        counter++;
     }
 
 }
