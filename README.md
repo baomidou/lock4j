@@ -42,24 +42,28 @@ lock4j是一个分布式锁组件，其提供了多种不同的支持以满足�
 1. 引入相关依赖(支持同时存在,不同方法不同锁实现)。
 
 ```xml
-<!--若使用redisTemplate作为分布式锁底层，则需要引入-->
-<dependency>
-    <groupId>com.baomidou</groupId>
-    <artifactId>lock4j-redis-template-spring-boot-starter</artifactId>
-    <version>latest.version</version>
-</dependency>
-        <!--若使用redisson作为分布式锁底层，则需要引入-->
-<dependency>
-<groupId>com.baomidou</groupId>
-<artifactId>lock4j-redisson-spring-boot-starter</artifactId>
-<version>latest.version</version>
-</dependency>
-        <!--若使用zookeeper作为分布式锁底层，则需要引入-->
-<dependency>
-<groupId>com.baomidou</groupId>
-<artifactId>lock4j-zookeeper-spring-boot-starter</artifactId>
-<version>latest.version</version>
-</dependency>
+
+<dependencies>
+    <!--若使用redisTemplate作为分布式锁底层，则需要引入-->
+    <dependency>
+        <groupId>com.baomidou</groupId>
+        <artifactId>lock4j-redis-template-spring-boot-starter</artifactId>
+        <version>latest.version</version>
+    </dependency>
+    <!--若使用redisson作为分布式锁底层，则需要引入-->
+    <dependency>
+        <groupId>com.baomidou</groupId>
+        <artifactId>lock4j-redisson-spring-boot-starter</artifactId>
+        <version>latest.version</version>
+    </dependency>
+    <!--若使用zookeeper作为分布式锁底层，则需要引入-->
+    <dependency>
+        <groupId>com.baomidou</groupId>
+        <artifactId>lock4j-zookeeper-spring-boot-starter</artifactId>
+        <version>latest.version</version>
+    </dependency>
+</dependencies>
+
 ```
 
 2. 根据底层需要配置redis或zookeeper。
