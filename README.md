@@ -161,24 +161,30 @@ public class MyLockFailureStrategy implements LockFailureStrategy {
 5. 手动上锁解锁。
 
 ```java
-public void programmaticLock(String userId){
 
-// 各种查询操作 不上锁
-// ...
-// 获取锁
-final LockInfo lockInfo=lockTemplate.lock(userId,30000L,5000L,RedissonLockExecutor.class);
-        if(null==lockInfo){
-        throw new RuntimeException("业务处理中,请稍后再试");
+@Service
+public class ProgrammaticService {
+    @Autowired
+    private LockTemaplate lockTemaplate;
+
+    public void programmaticLock(String userId) {
+        // 各种查询操作 不上锁
+        // ...
+        // 获取锁
+        final LockInfo lockInfo = lockTemplate.lock(userId, 30000L, 5000L, RedissonLockExecutor.class);
+        if (null == lockInfo) {
+            throw new RuntimeException("业务处理中,请稍后再试");
         }
         // 获取锁成功，处理业务
-        try{
-        System.out.println("执行简单方法1 , 当前线程:"+Thread.currentThread().getName()+" , counter："+(counter++));
-        }finally{
-        //释放锁
-        lockTemplate.releaseLock(lockInfo);
+        try {
+            System.out.println("执行简单方法1 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
+        } finally {
+            //释放锁
+            lockTemplate.releaseLock(lockInfo);
         }
         //结束
-        }
+    }
+}
 ```
 
 
