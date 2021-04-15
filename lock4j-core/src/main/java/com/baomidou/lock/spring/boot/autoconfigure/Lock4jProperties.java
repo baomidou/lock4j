@@ -50,4 +50,9 @@ public class Lock4jProperties {
      * 默认执行器，不设置默认取容器第一个(默认注入顺序，redisson>redisTemplate>zookeeper)
      */
     private Class<? extends LockExecutor> primaryExecutor;
+
+    /**
+     * 锁key前缀
+     */
+    private String lockKeyPrefix = "lock4j";
 }

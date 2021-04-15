@@ -14,16 +14,23 @@
  *  limitations under the License.
  */
 
-package com.baomidou.lock;
+package com.baomidou.lock.constant;
 
 /**
+ * 锁范围
+ *
  * @author zengzhihong
  */
-public interface LockFailureStrategy {
+public enum LockScope {
 
     /**
-     * 锁失败事件
+     * 全局
      */
-    void onLockFailure(String key, String message);
+    GLOBAL,
 
+    /**
+     * 方法级
+     */
+    METHOD,
+    ;
 }

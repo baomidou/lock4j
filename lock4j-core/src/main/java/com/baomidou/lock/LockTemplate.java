@@ -46,8 +46,6 @@ public class LockTemplate implements InitializingBean {
     @Setter
     private Lock4jProperties properties;
     @Setter
-    private LockFailureStrategy lockFailureStrategy;
-    @Setter
     private List<LockExecutor> executors;
 
     private LockExecutor primaryExecutor;
@@ -99,8 +97,6 @@ public class LockTemplate implements InitializingBean {
             log.error("lock error", e);
             throw new LockException();
         }
-        // lock failure
-        lockFailureStrategy.onLockFailure(key, acquireTimeout, acquireCount);
         return null;
     }
 

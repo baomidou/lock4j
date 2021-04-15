@@ -18,6 +18,7 @@ package com.baomidou.lock;
 
 import com.baomidou.lock.exception.LockFailureException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 
 /**
  * @author zengzhihong
@@ -25,10 +26,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DefaultLockFailureStrategy implements LockFailureStrategy {
 
+    protected static String DEFAULT_MESSAGE = "request failed,please retry it.";
+
     @Override
-    public void onLockFailure(String key, long acquireTimeout, int acquireCount) {
-        log.debug("thread:{} acquire lock fail,key:{} acquireTimeout:{}ms", Thread.currentThread().getName(), key,
-                acquireTimeout);
-        throw new LockFailureException("request failed,please retry it.");
+    public void onLockFailure(String key, String message) {
+        throw new LockFailureException(!StringUtils.hasText(message) ? DEFAULT_MESSAGE : message);
     }
 }

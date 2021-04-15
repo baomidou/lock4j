@@ -16,7 +16,13 @@
 
 package com.baomidou.lock.spring.boot.autoconfigure;
 
-import com.baomidou.lock.*;
+import com.baomidou.lock.DefaultLockFailureStrategy;
+import com.baomidou.lock.DefaultLockKeyBuilder;
+import com.baomidou.lock.DefaultLockMessageBuilder;
+import com.baomidou.lock.LockFailureStrategy;
+import com.baomidou.lock.LockKeyBuilder;
+import com.baomidou.lock.LockMessageBuilder;
+import com.baomidou.lock.LockTemplate;
 import com.baomidou.lock.aop.LockAnnotationAdvisor;
 import com.baomidou.lock.aop.LockInterceptor;
 import com.baomidou.lock.executor.LockExecutor;
@@ -44,10 +50,9 @@ public class LockAutoConfiguration {
     @SuppressWarnings("rawtypes")
     @Bean
     @ConditionalOnMissingBean
-    public LockTemplate lockTemplate(LockFailureStrategy lockFailureStrategy, List<LockExecutor> executors) {
+    public LockTemplate lockTemplate(List<LockExecutor> executors) {
         LockTemplate lockTemplate = new LockTemplate();
         lockTemplate.setProperties(properties);
-        lockTemplate.setLockFailureStrategy(lockFailureStrategy);
         lockTemplate.setExecutors(executors);
         return lockTemplate;
     }
@@ -60,14 +65,22 @@ public class LockAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    public LockMessageBuilder lockMessageBuilder() {
+        return new DefaultLockMessageBuilder();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     public LockFailureStrategy lockFailureStrategy() {
         return new DefaultLockFailureStrategy();
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public LockInterceptor lockInterceptor(LockTemplate lockTemplate, LockKeyBuilder lockKeyBuilder) {
-        return new LockInterceptor(lockTemplate, lockKeyBuilder);
+    public LockInterceptor lockInterceptor(LockTemplate lockTemplate, LockKeyBuilder lockKeyBuilder,
+                                           LockMessageBuilder lockMessageBuilder,
+                                           LockFailureStrategy lockFailureStrategy) {
+        return new LockInterceptor(lockTemplate, lockKeyBuilder, lockMessageBuilder, lockFailureStrategy, properties);
     }
 
     @Bean

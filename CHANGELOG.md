@@ -1,3 +1,9 @@
+# v2.2.1
+
+- update: 获取锁失败处理抽出至LockInterceptor
+- feat: @Lock4j 新增message字段 支持SPEL表达式，配合获取锁失败抛出错误信息
+- feat: @Lock4j 新增scope字段 支持全局锁、方法锁
+
 # v2.2.0
 
 - refactor: 项目结构重大调整

@@ -16,7 +16,9 @@
 
 package com.baomidou.lock.annotation;
 
+import com.baomidou.lock.constant.LockScope;
 import com.baomidou.lock.executor.LockExecutor;
+import com.baomidou.lock.spring.boot.autoconfigure.Lock4jProperties;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -33,6 +35,13 @@ import java.lang.annotation.Target;
 public @interface Lock4j {
 
     /**
+     * 锁范围
+     *
+     * @return {@link LockScope}
+     */
+    LockScope scope() default LockScope.METHOD;
+
+    /**
      * @return lock 执行器
      */
     Class<? extends LockExecutor> executor() default LockExecutor.class;
@@ -45,7 +54,7 @@ public @interface Lock4j {
     /**
      * @return 过期时间 单位：毫秒
      * <pre>
-     *     过期时间一定是要长于业务的执行时间. 未设置则为默认时间3秒
+     *     过期时间一定是要长于业务的执行时间. 未设置则为默认时间3秒 default value {@link Lock4jProperties#expire}
      * </pre>
      */
     long expire() default 0;
@@ -53,9 +62,16 @@ public @interface Lock4j {
     /**
      * @return 获取锁超时时间 单位：毫秒
      * <pre>
-     *     结合业务,建议该时间不宜设置过长,特别在并发高的情况下. 未设置则为默认时间3秒
+     *     结合业务,建议该时间不宜设置过长,特别在并发高的情况下. 未设置则为默认时间3秒 default value {@link Lock4jProperties#acquireTimeout}
      * </pre>
      */
     long acquireTimeout() default 0;
+
+    /**
+     * support SPEL expresion
+     *
+     * @return lock failure message
+     */
+    String message() default "";
 
 }

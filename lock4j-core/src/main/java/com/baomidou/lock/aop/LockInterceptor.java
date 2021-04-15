@@ -16,10 +16,13 @@
 
 package com.baomidou.lock.aop;
 
+import com.baomidou.lock.LockFailureStrategy;
 import com.baomidou.lock.LockInfo;
 import com.baomidou.lock.LockKeyBuilder;
+import com.baomidou.lock.LockMessageBuilder;
 import com.baomidou.lock.LockTemplate;
 import com.baomidou.lock.annotation.Lock4j;
+import com.baomidou.lock.spring.boot.autoconfigure.Lock4jProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInterceptor;
@@ -39,16 +42,34 @@ public class LockInterceptor implements MethodInterceptor {
 
     private final LockKeyBuilder lockKeyBuilder;
 
+    private final LockMessageBuilder lockMessageBuilder;
+
+    private final LockFailureStrategy lockFailureStrategy;
+
+    private final Lock4jProperties lock4jProperties;
+
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         LockInfo lockInfo = null;
         try {
             Lock4j lock4j = invocation.getMethod().getAnnotation(Lock4j.class);
-            String key = lockKeyBuilder.buildKey(invocation, lock4j.keys());
+            String prefix = lock4jProperties.getLockKeyPrefix() + ":";
+            switch (lock4j.scope()) {
+                case GLOBAL:
+                    break;
+                case METHOD:
+                    prefix += invocation.getMethod().getDeclaringClass().getName() + invocation.getMethod().getName();
+                    break;
+                default:
+            }
+            String key = prefix + "#" + lockKeyBuilder.buildKey(invocation, lock4j.keys());
             lockInfo = lockTemplate.lock(key, lock4j.expire(), lock4j.acquireTimeout(), lock4j.executor());
             if (null != lockInfo) {
                 return invocation.proceed();
             }
+            // lock failure
+            lockFailureStrategy.onLockFailure(key, lockMessageBuilder.buildMessage(invocation,
+                    lock4j.message()));
             return null;
         } finally {
             if (null != lockInfo) {

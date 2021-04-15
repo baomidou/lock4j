@@ -16,14 +16,19 @@
 
 package com.baomidou.lock;
 
+import org.aopalliance.intercept.MethodInvocation;
+
 /**
  * @author zengzhihong
  */
-public interface LockFailureStrategy {
+public interface LockMessageBuilder {
 
     /**
-     * 锁失败事件
+     * 构建message
+     *
+     * @param invocation        invocation
+     * @param definitionMessage 定义
+     * @return key
      */
-    void onLockFailure(String key, String message);
-
+    String buildMessage(MethodInvocation invocation, String definitionMessage);
 }
