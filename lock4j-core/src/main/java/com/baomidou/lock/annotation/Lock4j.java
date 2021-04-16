@@ -68,11 +68,4 @@ public @interface Lock4j {
      */
     long acquireTimeout() default 0;
 
-    /**
-     * support SPEL expresion
-     *
-     * @return lock failure message
-     */
-    String message() default "";
-
 }
