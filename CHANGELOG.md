@@ -1,8 +1,9 @@
 # v2.2.1
 
 - update: 获取锁失败处理抽出至LockInterceptor
-- feat: @Lock4j 新增message字段 支持SPEL表达式，配合获取锁失败抛出错误信息
-- feat: @Lock4j 新增scope字段 支持全局锁、方法锁
+- feat: @Lock4j 新增name字段 支持全局锁、资源锁、方法锁，通过name字段控制锁范围
+- update: 自定义key前缀移动至Lock4jProperties配置项，默认配置为lock4j
+- update: 获取锁失败处理策略传递了Method和Arguments，方便根据方法参数定义特殊错误提示
 
 # v2.2.0
 

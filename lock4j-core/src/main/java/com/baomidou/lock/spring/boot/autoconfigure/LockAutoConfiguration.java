@@ -18,10 +18,8 @@ package com.baomidou.lock.spring.boot.autoconfigure;
 
 import com.baomidou.lock.DefaultLockFailureStrategy;
 import com.baomidou.lock.DefaultLockKeyBuilder;
-import com.baomidou.lock.DefaultLockMessageBuilder;
 import com.baomidou.lock.LockFailureStrategy;
 import com.baomidou.lock.LockKeyBuilder;
-import com.baomidou.lock.LockMessageBuilder;
 import com.baomidou.lock.LockTemplate;
 import com.baomidou.lock.aop.LockAnnotationAdvisor;
 import com.baomidou.lock.aop.LockInterceptor;
@@ -65,12 +63,6 @@ public class LockAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public LockMessageBuilder lockMessageBuilder() {
-        return new DefaultLockMessageBuilder();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
     public LockFailureStrategy lockFailureStrategy() {
         return new DefaultLockFailureStrategy();
     }
@@ -78,9 +70,8 @@ public class LockAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public LockInterceptor lockInterceptor(LockTemplate lockTemplate, LockKeyBuilder lockKeyBuilder,
-                                           LockMessageBuilder lockMessageBuilder,
                                            LockFailureStrategy lockFailureStrategy) {
-        return new LockInterceptor(lockTemplate, lockKeyBuilder, lockMessageBuilder, lockFailureStrategy, properties);
+        return new LockInterceptor(lockTemplate, lockKeyBuilder, lockFailureStrategy, properties);
     }
 
     @Bean

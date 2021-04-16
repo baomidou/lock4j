@@ -44,7 +44,7 @@ public class UserService {
 
     }
 
-    @Lock4j(keys = "#user.id", acquireTimeout = 5000, expire = 5000, message = "'处理中'")
+    @Lock4j(keys = "#user.id", acquireTimeout = 5000, expire = 5000)
     public User method1(User user) {
         System.out.println("执行spel方法1 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
         //模拟锁占用
@@ -56,7 +56,7 @@ public class UserService {
         return user;
     }
 
-    @Lock4j(keys = {"#user.id", "#user.name"}, acquireTimeout = 5000, expire = 5000, message = "#user.name + '业务处理中'")
+    @Lock4j(keys = {"#user.id", "#user.name"}, acquireTimeout = 5000, expire = 5000)
     public User method2(User user) {
         System.out.println("执行spel方法2 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
         //模拟锁占用
