@@ -16,14 +16,17 @@
 
 package com.baomidou.lock.aop;
 
+import com.baomidou.lock.LockFailureStrategy;
 import com.baomidou.lock.LockInfo;
 import com.baomidou.lock.LockKeyBuilder;
 import com.baomidou.lock.LockTemplate;
 import com.baomidou.lock.annotation.Lock4j;
+import com.baomidou.lock.spring.boot.autoconfigure.Lock4jProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.util.StringUtils;
 
 
 /**
@@ -39,16 +42,25 @@ public class LockInterceptor implements MethodInterceptor {
 
     private final LockKeyBuilder lockKeyBuilder;
 
+    private final LockFailureStrategy lockFailureStrategy;
+
+    private final Lock4jProperties lock4jProperties;
+
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         LockInfo lockInfo = null;
         try {
             Lock4j lock4j = invocation.getMethod().getAnnotation(Lock4j.class);
-            String key = lockKeyBuilder.buildKey(invocation, lock4j.keys());
+            String prefix = lock4jProperties.getLockKeyPrefix() + ":";
+            prefix += StringUtils.hasText(lock4j.name()) ? lock4j.name() :
+                    invocation.getMethod().getDeclaringClass().getName() + invocation.getMethod().getName();
+            String key = prefix + "#" + lockKeyBuilder.buildKey(invocation, lock4j.keys());
             lockInfo = lockTemplate.lock(key, lock4j.expire(), lock4j.acquireTimeout(), lock4j.executor());
             if (null != lockInfo) {
                 return invocation.proceed();
             }
+            // lock failure
+            lockFailureStrategy.onLockFailure(key, invocation.getMethod(), invocation.getArguments());
             return null;
         } finally {
             if (null != lockInfo) {

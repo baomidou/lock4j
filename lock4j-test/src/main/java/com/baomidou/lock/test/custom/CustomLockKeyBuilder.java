@@ -20,15 +20,12 @@ import com.baomidou.lock.DefaultLockKeyBuilder;
 import org.springframework.stereotype.Component;
 
 /**
- * 自定义lock key前缀
+ * 自定义lock key builder
  *
  * @author zengzhihong
  */
 @Component
 public class CustomLockKeyBuilder extends DefaultLockKeyBuilder {
 
-    @Override
-    protected String getKeyPrefix() {
-        return "test";
-    }
+
 }

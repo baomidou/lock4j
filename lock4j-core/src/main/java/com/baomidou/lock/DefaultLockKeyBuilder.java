@@ -36,21 +36,17 @@ import java.util.List;
  */
 public class DefaultLockKeyBuilder implements LockKeyBuilder {
 
-    private static final String DEFAULT_KEY_PREFIX = "lock4j";
-
     private static final ParameterNameDiscoverer NAME_DISCOVERER = new DefaultParameterNameDiscoverer();
 
     private static final ExpressionParser PARSER = new SpelExpressionParser();
 
     @Override
     public String buildKey(MethodInvocation invocation, String[] definitionKeys) {
-        StringBuilder sb = new StringBuilder(getKeyPrefix());
         Method method = invocation.getMethod();
-        sb.append(":").append(method.getDeclaringClass().getName()).append(".").append(method.getName()).append("#");
         if (definitionKeys.length > 1 || !"".equals(definitionKeys[0])) {
-            sb.append(getSpelDefinitionKey(definitionKeys, method, invocation.getArguments()));
+            return getSpelDefinitionKey(definitionKeys, method, invocation.getArguments());
         }
-        return sb.toString();
+        return "";
     }
 
     protected String getSpelDefinitionKey(String[] definitionKeys, Method method, Object[] parameterValues) {
@@ -58,15 +54,11 @@ public class DefaultLockKeyBuilder implements LockKeyBuilder {
         List<String> definitionKeyList = new ArrayList<>(definitionKeys.length);
         for (String definitionKey : definitionKeys) {
             if (definitionKey != null && !definitionKey.isEmpty()) {
-                String key = PARSER.parseExpression(definitionKey).getValue(context).toString();
+                String key = PARSER.parseExpression(definitionKey).getValue(context, String.class);
                 definitionKeyList.add(key);
             }
         }
         return StringUtils.collectionToDelimitedString(definitionKeyList, ".", "", "");
-    }
-
-    protected String getKeyPrefix() {
-        return DEFAULT_KEY_PREFIX;
     }
 
 }

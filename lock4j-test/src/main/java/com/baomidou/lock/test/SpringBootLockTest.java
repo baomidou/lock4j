@@ -83,7 +83,7 @@ public class SpringBootLockTest {
         for (int i = 0; i < 100; i++) {
             executorService.submit(task);
         }
-        Thread.sleep(3000);
+        Thread.sleep(30000);
     }
 
     @SneakyThrows
@@ -94,7 +94,7 @@ public class SpringBootLockTest {
             @Override
             public void run() {
                 try {
-                    userService.method1(new User(RANDOM.nextLong(), "苞米豆"));
+                    userService.method1(new User(1L, "苞米豆"));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -103,7 +103,7 @@ public class SpringBootLockTest {
         for (int i = 0; i < 100; i++) {
             executorService.submit(task);
         }
-        Thread.sleep(3000);
+        Thread.sleep(30000);
     }
 
     @SneakyThrows

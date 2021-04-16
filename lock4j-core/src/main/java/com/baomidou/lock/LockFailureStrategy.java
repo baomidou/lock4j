@@ -16,6 +16,8 @@
 
 package com.baomidou.lock;
 
+import java.lang.reflect.Method;
+
 /**
  * @author zengzhihong
  */
@@ -24,6 +26,6 @@ public interface LockFailureStrategy {
     /**
      * 锁失败事件
      */
-    void onLockFailure(String key, long acquireTimeout, int acquireCount);
+    void onLockFailure(String key, Method method, Object[] arguments);
 
 }
