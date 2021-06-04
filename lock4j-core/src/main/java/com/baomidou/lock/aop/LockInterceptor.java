@@ -22,6 +22,7 @@ import com.baomidou.lock.LockKeyBuilder;
 import com.baomidou.lock.LockTemplate;
 import com.baomidou.lock.annotation.Lock4j;
 import com.baomidou.lock.spring.boot.autoconfigure.Lock4jProperties;
+import com.baomidou.lock.util.AopUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInterceptor;
@@ -48,6 +49,13 @@ public class LockInterceptor implements MethodInterceptor {
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
+
+        //fix 使用其他aop组件时,aop切了两次.
+        Class<?> cls = AopUtil.getTargetClass(invocation.getThis());
+        if (!cls.equals(invocation.getThis().getClass())) {
+            return invocation.proceed();
+        }
+
         LockInfo lockInfo = null;
         try {
             Lock4j lock4j = invocation.getMethod().getAnnotation(Lock4j.class);
