@@ -19,20 +19,17 @@ package com.baomidou.lock.test;
 import com.baomidou.lock.test.model.User;
 import com.baomidou.lock.test.service.UserService;
 import lombok.SneakyThrows;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @SuppressWarnings("ALL")
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = SpringBootLockTest.class)
 @SpringBootApplication
 public class SpringBootLockTest {
