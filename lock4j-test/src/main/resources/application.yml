@@ -4,7 +4,7 @@ spring:
   #    password: 123456
   coordinate:
     zookeeper:
-      zk-servers: 127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183
+#      zk-servers: 127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183
 logging:
   level:
     com.baomidou: debug

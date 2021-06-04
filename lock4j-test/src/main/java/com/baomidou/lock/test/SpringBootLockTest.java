@@ -60,7 +60,7 @@ public class SpringBootLockTest {
                 }
             }
         };
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1000; i++) {
             executorService.submit(task);
         }
         Thread.sleep(1000000);

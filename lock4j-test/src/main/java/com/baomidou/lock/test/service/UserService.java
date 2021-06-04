@@ -20,7 +20,6 @@ import com.baomidou.lock.LockInfo;
 import com.baomidou.lock.LockTemplate;
 import com.baomidou.lock.annotation.Lock4j;
 import com.baomidou.lock.executor.RedissonLockExecutor;
-import com.baomidou.lock.executor.ZookeeperLockExecutor;
 import com.baomidou.lock.test.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,7 +32,7 @@ public class UserService {
 
     private int counter = 1;
 
-    @Lock4j(executor = ZookeeperLockExecutor.class)
+    @Lock4j(executor = RedissonLockExecutor.class)
     public void simple1() {
         System.out.println("执行简单方法1 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
     }
