@@ -54,7 +54,7 @@ public class LockTemplate implements InitializingBean {
     }
 
     public LockInfo lock(String key) {
-        return lock(key, 0, 0);
+        return lock(key, 0, -1);
     }
 
     public LockInfo lock(String key, long expire, long acquireTimeout) {
@@ -71,20 +71,16 @@ public class LockTemplate implements InitializingBean {
      * @return 加锁成功返回锁信息 失败返回null
      */
     public LockInfo lock(String key, long expire, long acquireTimeout, Class<? extends LockExecutor> executor) {
-        expire = expire == 0 ? properties.getExpire() : expire;
-        acquireTimeout = acquireTimeout == 0 ? properties.getAcquireTimeout() : acquireTimeout;
+        expire = expire <= 0 ? properties.getExpire() : expire;
+        acquireTimeout = acquireTimeout < 0 ? properties.getAcquireTimeout() : acquireTimeout;
         long retryInterval = properties.getRetryInterval();
-        // 防止重试时间大于超时时间
-        if (retryInterval >= acquireTimeout) {
-            log.warn("retryInterval more than acquireTimeout,please check your configuration");
-        }
         LockExecutor lockExecutor = obtainExecutor(executor);
         log.debug(String.format("use lock class: %s", lockExecutor.getClass()));
         int acquireCount = 0;
         String value = LockUtil.simpleUUID();
         long start = System.currentTimeMillis();
         try {
-            while (System.currentTimeMillis() - start < acquireTimeout) {
+            do {
                 acquireCount++;
                 Object lockInstance = lockExecutor.acquire(key, value, expire, acquireTimeout);
                 if (null != lockInstance) {
@@ -92,7 +88,7 @@ public class LockTemplate implements InitializingBean {
                             lockExecutor);
                 }
                 TimeUnit.MILLISECONDS.sleep(retryInterval);
-            }
+            } while (System.currentTimeMillis() - start < acquireTimeout);
         } catch (InterruptedException e) {
             log.error("lock error", e);
             throw new LockException();
