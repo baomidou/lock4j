@@ -66,6 +66,6 @@ public @interface Lock4j {
      *     结合业务,建议该时间不宜设置过长,特别在并发高的情况下. 未设置则为默认时间3秒 默认值：{@link Lock4jProperties#acquireTimeout}
      * </pre>
      */
-    long acquireTimeout() default 0;
+    long acquireTimeout() default -1;
 
 }
