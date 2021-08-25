@@ -165,7 +165,7 @@ public class MyLockFailureStrategy implements LockFailureStrategy {
 @Service
 public class ProgrammaticService {
     @Autowired
-    private LockTemaplate lockTemaplate;
+    private LockTemplate lockTemplate;
 
     public void programmaticLock(String userId) {
         // 各种查询操作 不上锁
