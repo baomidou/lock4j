@@ -111,6 +111,12 @@ lock4j:
   primary-executor: com.baomidou.lock.executor.RedisTemplateLockExecutor #默认redisson>redisTemplate>zookeeper，可不设置
 ```
 
+acquire-timeout 可以理解为排队时常，超过这个时常就退出排队，抛出获取锁超时异常。 
+
+为什么必须要有这个参数？现实你会一直排队等下去吗？所有人都一直排队有没有问题 ？
+
+expire  锁过期时间  。 主要是防止死锁。 建议估计好你锁方法运行时常，正常没有复杂业务的增删改查最多几秒，流有一定冗余，10秒足够。 我们默认30秒是为了兼容绝大部分场景。
+
 2. 自定义执行器。
 
 ```java
