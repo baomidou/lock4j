@@ -112,6 +112,7 @@ lock4j:
   acquire-timeout: 3000 #默认值3s，可不设置
   expire: 30000 #默认值30s，可不设置
   primary-executor: com.baomidou.lock.executor.RedisTemplateLockExecutor #默认redisson>redisTemplate>zookeeper，可不设置
+  lockKeyPrefix: lock4j #锁key前缀, 默认值lock4j，可不设置
 ```
 
 acquire-timeout 可以理解为排队时常，超过这个时常就退出排队，抛出获取锁超时异常。
@@ -145,9 +146,11 @@ public class DemoService {
 public class MyLockKeyBuilder extends DefaultLockKeyBuilder {
 
     @Override
-    protected String getKeyPrefix() {
-        return "myKey"; //默认是lock4j开头
-    }
+	public String buildKey(MethodInvocation invocation, String[] definitionKeys) {
+		String key = super.buildKey(invocation, definitionKeys);
+        // do something
+		return key;
+	}
 }
 ```
 
