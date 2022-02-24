@@ -43,12 +43,17 @@ public class UserService {
 
     }
 
-    @Lock4j(keys = "#user.id", acquireTimeout = 5000, expire = 5000)
+    @Lock4j(keys = "#user.id", acquireTimeout = 15000, expire = 1000, executor = RedissonLockExecutor.class)
     public User method1(User user) {
         System.out.println("执行spel方法1 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
         //模拟锁占用
         try {
-            Thread.sleep(4000);
+            int count = 0;
+            do {
+                Thread.sleep(1000);
+                System.out.println("执行spel方法1 , 当前线程:" + Thread.currentThread().getName() + " , 休眠秒：" + (count++));
+            } while (count < 5);
+//            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -97,6 +102,11 @@ public class UserService {
     public void reentrantMethod2() {
         System.out.println("reentrantMethod2" + getClass());
         counter++;
+    }
+
+    @Lock4j(expire = 5000, autoRelease = false)
+    public void nonAutoReleaseLock() {
+        System.out.println("执行nonAutoReleaseLock方法 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
     }
 
 }

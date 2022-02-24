@@ -60,7 +60,7 @@ public class SpringBootLockTest {
         for (int i = 0; i < 1000; i++) {
             executorService.submit(task);
         }
-        Thread.sleep(1000000);
+        Thread.sleep(Long.MAX_VALUE);
     }
 
     @SneakyThrows
@@ -80,7 +80,7 @@ public class SpringBootLockTest {
         for (int i = 0; i < 100; i++) {
             executorService.submit(task);
         }
-        Thread.sleep(30000);
+        Thread.sleep(Long.MAX_VALUE);
     }
 
     @SneakyThrows
@@ -100,7 +100,7 @@ public class SpringBootLockTest {
         for (int i = 0; i < 100; i++) {
             executorService.submit(task);
         }
-        Thread.sleep(30000);
+        Thread.sleep(Long.MAX_VALUE);
     }
 
     @SneakyThrows
@@ -120,7 +120,7 @@ public class SpringBootLockTest {
         for (int i = 0; i < 100; i++) {
             executorService.submit(task);
         }
-        Thread.sleep(30000);
+        Thread.sleep(Long.MAX_VALUE);
     }
 
     /**
@@ -139,14 +139,36 @@ public class SpringBootLockTest {
         for (int i = 0; i < 100; i++) {
             executorService.submit(task);
         }
-        Thread.sleep(30000);
+        Thread.sleep(Long.MAX_VALUE);
     }
 
+    /**
+     * 重入锁
+     */
     @Test
     public void reentrantLock() {
         userService.reentrantMethod1();
         userService.reentrantMethod1();
         userService.reentrantMethod2();
+    }
+
+    /**
+     * 不自动解锁
+     */
+    @SneakyThrows
+    @Test
+    public void nonAutoReleaseLock() {
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        Runnable task = new Runnable() {
+            @Override
+            public void run() {
+                userService.nonAutoReleaseLock();
+            }
+        };
+        for (int i = 0; i < 100; i++) {
+            executorService.submit(task);
+        }
+        Thread.sleep(Long.MAX_VALUE);
     }
 
 }

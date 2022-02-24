@@ -36,6 +36,11 @@ public class RedissonLockExecutor extends AbstractLockExecutor<RLock> {
     private final RedissonClient redissonClient;
 
     @Override
+    public boolean renewal() {
+        return true;
+    }
+
+    @Override
     public RLock acquire(String lockKey, String lockValue, long expire, long acquireTimeout) {
         try {
             final RLock lockInstance = redissonClient.getLock(lockKey);

@@ -1,3 +1,9 @@
+# v2.2.2
+
+- update: Lock4j注解expire参数默认值调整为-1
+- fix: redisson不会自动续期（如果需要续期，expire参数请填写为-1）
+- feat: Lock4j注解添加autoRelease参数，可以指定是否方法结束后是否自动释放锁，默认为true，场景：接口限流
+
 # v2.2.1
 
 - update: 获取锁失败处理抽出至LockInterceptor

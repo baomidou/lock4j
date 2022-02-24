@@ -112,10 +112,10 @@ lock4j:
   acquire-timeout: 3000 #默认值3s，可不设置
   expire: 30000 #默认值30s，可不设置
   primary-executor: com.baomidou.lock.executor.RedisTemplateLockExecutor #默认redisson>redisTemplate>zookeeper，可不设置
-  lockKeyPrefix: lock4j #锁key前缀, 默认值lock4j，可不设置
+  lock-key-prefix: lock4j #锁key前缀, 默认值lock4j，可不设置
 ```
 
-acquire-timeout 可以理解为排队时常，超过这个时常就退出排队，抛出获取锁超时异常。
+acquire-timeout 可以理解为排队时长，超过这个时才就退出排队，抛出获取锁超时异常。
 
 为什么必须要有这个参数？现实你会一直排队等下去吗？所有人都一直排队有没有问题 ？
 

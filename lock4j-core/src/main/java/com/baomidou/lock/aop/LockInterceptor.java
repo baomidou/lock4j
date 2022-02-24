@@ -54,9 +54,9 @@ public class LockInterceptor implements MethodInterceptor {
         if (!cls.equals(invocation.getThis().getClass())) {
             return invocation.proceed();
         }
+        Lock4j lock4j = invocation.getMethod().getAnnotation(Lock4j.class);
         LockInfo lockInfo = null;
         try {
-            Lock4j lock4j = invocation.getMethod().getAnnotation(Lock4j.class);
             String prefix = lock4jProperties.getLockKeyPrefix() + ":";
             prefix += StringUtils.hasText(lock4j.name()) ? lock4j.name() :
                     invocation.getMethod().getDeclaringClass().getName() + invocation.getMethod().getName();
@@ -69,7 +69,7 @@ public class LockInterceptor implements MethodInterceptor {
             lockFailureStrategy.onLockFailure(key, invocation.getMethod(), invocation.getArguments());
             return null;
         } finally {
-            if (null != lockInfo) {
+            if (null != lockInfo && lock4j.autoRelease()) {
                 final boolean releaseLock = lockTemplate.releaseLock(lockInfo);
                 if (!releaseLock) {
                     log.error("releaseLock fail,lockKey={},lockValue={}", lockInfo.getLockKey(),

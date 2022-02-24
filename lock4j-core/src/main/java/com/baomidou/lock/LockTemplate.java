@@ -71,11 +71,11 @@ public class LockTemplate implements InitializingBean {
      * @return 加锁成功返回锁信息 失败返回null
      */
     public LockInfo lock(String key, long expire, long acquireTimeout, Class<? extends LockExecutor> executor) {
-        expire = expire <= 0 ? properties.getExpire() : expire;
         acquireTimeout = acquireTimeout < 0 ? properties.getAcquireTimeout() : acquireTimeout;
         long retryInterval = properties.getRetryInterval();
         LockExecutor lockExecutor = obtainExecutor(executor);
         log.debug(String.format("use lock class: %s", lockExecutor.getClass()));
+        expire = !lockExecutor.renewal() && expire <= 0 ? properties.getExpire() : expire;
         int acquireCount = 0;
         String value = LockUtil.simpleUUID();
         long start = System.currentTimeMillis();
@@ -117,8 +117,8 @@ public class LockTemplate implements InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
 
-        Assert.isTrue(properties.getAcquireTimeout() > 0, "tryTimeout must more than 0");
-        Assert.isTrue(properties.getExpire() > 0, "expireTime must more than 0");
+        Assert.isTrue(properties.getAcquireTimeout() >= 0, "tryTimeout must least 0");
+        Assert.isTrue(properties.getExpire() >= -1, "expireTime must lease -1");
         Assert.isTrue(properties.getRetryInterval() >= 0, "retryInterval must more than 0");
         Assert.hasText(properties.getLockKeyPrefix(), "lock key prefix must be not blank");
         Assert.notEmpty(executors, "executors must have at least one");
