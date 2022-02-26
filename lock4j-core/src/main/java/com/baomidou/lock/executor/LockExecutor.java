@@ -26,11 +26,13 @@ public interface LockExecutor<T> {
 
     /**
      * 续期，目前只有redisson支持，切expire参数为-1才会续期
-     * @return
+     *
+     * @return 是否续期
      */
     default boolean renewal() {
         return false;
     }
+
     /**
      * 加锁
      *
