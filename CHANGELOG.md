@@ -1,3 +1,7 @@
+# v2.2.3
+
+- fix: 依赖关系导致 SpringCloud 配置刷新失效 Issues [#I5ZIFG](https://gitee.com/baomidou/lock4j/issues/I5ZIFG)
+
 # v2.2.2
 
 - update: Lock4j注解expire参数默认值调整为-1
