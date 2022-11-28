@@ -25,6 +25,7 @@ import com.baomidou.lock.aop.LockAnnotationAdvisor;
 import com.baomidou.lock.aop.LockInterceptor;
 import com.baomidou.lock.executor.LockExecutor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -58,8 +59,8 @@ public class LockAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public LockKeyBuilder lockKeyBuilder() {
-        return new DefaultLockKeyBuilder();
+    public LockKeyBuilder lockKeyBuilder(BeanFactory beanFactory) {
+        return new DefaultLockKeyBuilder(beanFactory);
     }
 
     @Bean

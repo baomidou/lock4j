@@ -17,6 +17,7 @@
 package com.baomidou.lock.test.custom;
 
 import com.baomidou.lock.DefaultLockKeyBuilder;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,5 +28,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CustomLockKeyBuilder extends DefaultLockKeyBuilder {
 
-
+    public CustomLockKeyBuilder(BeanFactory beanFactory) {
+        super(beanFactory);
+    }
 }
