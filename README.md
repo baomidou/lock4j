@@ -206,7 +206,7 @@ public class ProgrammaticService {
 public class DemoService {
 
     // 用户在5秒内只能访问1次
-    @Lock4j(keys = {"#user.id"}, acquireTimeout = 5000, expire = 5000, autoRelease = false)
+    @Lock4j(keys = {"#user.id"}, acquireTimeout = 0, expire = 5000, autoRelease = false)
     public Boolean test(User user) {
         return "true";
     }

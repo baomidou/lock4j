@@ -104,7 +104,7 @@ public class UserService {
         counter++;
     }
 
-    @Lock4j(expire = 5000, autoRelease = false)
+    @Lock4j(acquireTimeout = 0,expire = 5000, autoRelease = false)
     public void nonAutoReleaseLock() {
         System.out.println("执行nonAutoReleaseLock方法 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
     }

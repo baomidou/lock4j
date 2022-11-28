@@ -25,7 +25,7 @@ package com.baomidou.lock.executor;
 public interface LockExecutor<T> {
 
     /**
-     * 续期，目前只有redisson支持，切expire参数为-1才会续期
+     * 续期，目前只有redisson支持，且expire参数为-1才会续期
      *
      * @return 是否续期
      */
