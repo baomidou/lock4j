@@ -19,7 +19,9 @@ package com.baomidou.lock.annotation;
 import com.baomidou.lock.executor.LockExecutor;
 import com.baomidou.lock.spring.boot.autoconfigure.Lock4jProperties;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -31,6 +33,8 @@ import java.lang.annotation.Target;
  */
 @Target(value = {ElementType.METHOD})
 @Retention(value = RetentionPolicy.RUNTIME)
+@Inherited
+@Documented
 public @interface Lock4j {
 
     /**

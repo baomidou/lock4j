@@ -165,7 +165,7 @@ public class SpringBootLockTest {
                 userService.nonAutoReleaseLock();
             }
         };
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1; i++) {
             executorService.submit(task);
         }
         Thread.sleep(Long.MAX_VALUE);
