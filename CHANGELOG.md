@@ -1,3 +1,8 @@
+# v2.2.4
+
+- feat: springboot3支持
+- update: 升级redisson依赖
+
 # v2.2.3
 
 - fix: 依赖关系导致 SpringCloud 配置刷新失效 Issues [#I5ZIFG](https://gitee.com/baomidou/lock4j/issues/I5ZIFG)
