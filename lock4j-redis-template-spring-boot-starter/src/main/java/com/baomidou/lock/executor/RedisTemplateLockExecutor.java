@@ -16,7 +16,7 @@
 
 package com.baomidou.lock.executor;
 
-import com.baomidou.lock.exception.LockFailureException;
+import com.baomidou.lock.exception.LockException;
 import com.baomidou.lock.spring.boot.autoconfigure.Lock4jProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,8 +42,8 @@ public class RedisTemplateLockExecutor extends AbstractLockExecutor<String> {
             "ARGV[1],'NX','PX',ARGV[2])", String.class);
     private static final RedisScript<String> SCRIPT_UNLOCK = new DefaultRedisScript<>("if redis.call('get',KEYS[1]) " +
             "== ARGV[1] then return tostring(redis.call('del', KEYS[1])==1) else return 'false' end", String.class);
-    private static final RedisScript<Boolean> SCRIPT_RENEWAL = new DefaultRedisScript<>("if redis.call('exists', KEYS[1], ARGV[1]) == 1  " +
-            "then return redis.call('expire', KEYS[1], ARGV[2]) else  return 0  end", Boolean.class);
+    private static final RedisScript<Boolean> SCRIPT_RENEWAL = new DefaultRedisScript<>("if redis.call('get', KEYS[1]) ==ARGV[1] " +
+            "then return redis.call('pexpire', KEYS[1], ARGV[2]) else  return 0  end", Boolean.class);
     private static final String LOCK_SUCCESS = "OK";
 
     private final StringRedisTemplate redisTemplate;
@@ -57,25 +57,26 @@ public class RedisTemplateLockExecutor extends AbstractLockExecutor<String> {
     @Override
     public String acquire(String lockKey, String lockValue, long expire, long acquireTimeout) {
 
-       final long newExpire = expire > 0 ? expire : lock4jProperties.getExpire();
+        final long newExpire = expire > 0 ? expire : lock4jProperties.getExpire();
 
         CompletableFuture<String> cf = CompletableFuture.supplyAsync(() -> redisTemplate.execute(SCRIPT_LOCK,
-                redisTemplate.getStringSerializer(),
-                redisTemplate.getStringSerializer(),
-                Collections.singletonList(lockKey),
-                lockValue, String.valueOf(newExpire)))
-        .thenApply(acquired -> {
-            //成功开始续期且传-1时开始续期
-            if (LOCK_SUCCESS.equals(acquired)&&expire==-1) {
-                renewExpiration(newExpire,lockKey,lockValue);
-            }
-            return acquired;
-        });
+                        redisTemplate.getStringSerializer(),
+                        redisTemplate.getStringSerializer(),
+                        Collections.singletonList(lockKey),
+                        lockValue, String.valueOf(newExpire)))
+                .thenApply(acquired -> {
+                    //成功且传-1时开始续期
+                    if (LOCK_SUCCESS.equals(acquired) && expire == -1) {
+                        renewExpiration(newExpire, lockKey, lockValue);
+                    }
+                    return acquired;
+                });
         String lock;
         try {
             lock = cf.get();
         } catch (Exception e) {
-            throw new LockFailureException("锁获取失败！");
+            log.error("lock error", e);
+            throw new LockException();
         }
         final boolean locked = LOCK_SUCCESS.equals(lock);
         return obtainLockInstance(locked, lock);
@@ -91,15 +92,15 @@ public class RedisTemplateLockExecutor extends AbstractLockExecutor<String> {
     }
 
 
-    private void renewExpiration(long expire,String lockKey, String lockValue) {
+    private void renewExpiration(long expire, String lockKey, String lockValue) {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                if (Boolean.TRUE.equals(redisTemplate.execute(SCRIPT_RENEWAL,Collections.singletonList(lockKey),lockValue, String.valueOf(expire)))) {
-                    renewExpiration(expire,lockKey,lockValue);
+                if (Boolean.TRUE.equals(redisTemplate.execute(SCRIPT_RENEWAL, Collections.singletonList(lockKey), lockValue, String.valueOf(expire)))) {
+                    renewExpiration(expire, lockKey, lockValue);
                 }
             }
-        }, expire * 1000 / 3);
+        }, expire / 3);
     }
 
 
