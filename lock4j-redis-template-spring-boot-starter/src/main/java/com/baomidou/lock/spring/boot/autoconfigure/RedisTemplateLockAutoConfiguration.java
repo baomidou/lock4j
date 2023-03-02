@@ -35,7 +35,7 @@ public class RedisTemplateLockAutoConfiguration {
 
     @Bean
     @Order(200)
-    public RedisTemplateLockExecutor redisTemplateLockExecutor(StringRedisTemplate stringRedisTemplate) {
-        return new RedisTemplateLockExecutor(stringRedisTemplate);
+    public RedisTemplateLockExecutor redisTemplateLockExecutor(StringRedisTemplate stringRedisTemplate,Lock4jProperties lock4jProperties) {
+        return new RedisTemplateLockExecutor(stringRedisTemplate,lock4jProperties);
     }
 }

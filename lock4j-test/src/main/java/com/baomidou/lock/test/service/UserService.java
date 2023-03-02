@@ -39,4 +39,6 @@ public interface UserService {
 
     void nonAutoReleaseLock();
 
+    void renewExpirationTemplate();
+
 }

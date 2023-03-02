@@ -171,4 +171,23 @@ public class SpringBootLockTest {
         Thread.sleep(Long.MAX_VALUE);
     }
 
+    /**
+     * redisTemplate锁续期
+     */
+    @SneakyThrows
+    @Test
+    public void  renewExpirationTemplate(){
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        Runnable task = new Runnable() {
+            @Override
+            public void run() {
+                userService.renewExpirationTemplate();
+            }
+        };
+        for (int i = 0; i < 1; i++) {
+            executorService.submit(task);
+        }
+        Thread.sleep(Long.MAX_VALUE);
+    }
+
 }

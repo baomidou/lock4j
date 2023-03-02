@@ -19,16 +19,22 @@ package com.baomidou.lock.test.service;
 import com.baomidou.lock.LockInfo;
 import com.baomidou.lock.LockTemplate;
 import com.baomidou.lock.annotation.Lock4j;
+import com.baomidou.lock.executor.RedisTemplateLockExecutor;
 import com.baomidou.lock.executor.RedissonLockExecutor;
 import com.baomidou.lock.test.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserServiceImpl implements UserService{
 
     @Autowired
     LockTemplate lockTemplate;
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
 
     private int counter = 1;
 
@@ -115,6 +121,23 @@ public class UserServiceImpl implements UserService{
     @Lock4j(acquireTimeout = 0,expire = 5000, autoRelease = false)
     public void nonAutoReleaseLock() {
         System.out.println("执行nonAutoReleaseLock方法 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
+    }
+
+    @Override
+    @Lock4j(keys ="1",expire = -1,executor = RedisTemplateLockExecutor.class)
+    public void renewExpirationTemplate() {
+        System.out.println("执行renewExpirationTemplate方法 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
+        Long expire = stringRedisTemplate.getExpire("lock4j:com.baomidou.lock.test.service.UserServiceImplrenewExpirationTemplate#1", TimeUnit.MILLISECONDS);
+        System.out.println("获取锁后起始时间:"+expire);
+        try {
+            //超过默认过期时间
+            Thread.sleep(30000L);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Long newExpire = stringRedisTemplate.getExpire("lock4j:com.baomidou.lock.test.service.UserServiceImplrenewExpirationTemplate#1",TimeUnit.MILLISECONDS);
+        System.out.println("处理业务逻辑后续期时间:"+newExpire);
+
     }
 
 }
