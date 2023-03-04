@@ -190,4 +190,23 @@ public class SpringBootLockTest {
         Thread.sleep(Long.MAX_VALUE);
     }
 
+    /**
+     * Lock4j注解适用于接口方法
+     */
+    @SneakyThrows
+    @Test
+    public void usedInInterface(){
+        ExecutorService executorService = Executors.newFixedThreadPool(5);
+        Runnable task = new Runnable() {
+            @Override
+            public void run() {
+                userService.usedInInterface();
+            }
+        };
+        for (int i = 0; i < 5; i++) {
+            executorService.submit(task);
+        }
+        Thread.sleep(Long.MAX_VALUE);
+    }
+
 }
