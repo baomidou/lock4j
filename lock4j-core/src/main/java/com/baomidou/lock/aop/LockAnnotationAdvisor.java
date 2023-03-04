@@ -35,7 +35,7 @@ public class LockAnnotationAdvisor extends AbstractPointcutAdvisor implements Be
 
     private final Advice advice;
 
-    private final Pointcut pointcut = AnnotationMatchingPointcut.forMethodAnnotation(Lock4j.class);
+    private final Pointcut pointcut = new AnnotationMatchingPointcut(null,Lock4j.class,true);
 
     public LockAnnotationAdvisor(@NonNull LockInterceptor lockInterceptor, int order) {
         this.advice = lockInterceptor;
