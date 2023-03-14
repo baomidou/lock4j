@@ -140,4 +140,9 @@ public class UserServiceImpl implements UserService{
 
     }
 
+    @Override
+    public void usedInInterface() {
+        System.out.println("执行usedInInterface方法 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
+    }
+
 }

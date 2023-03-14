@@ -16,6 +16,8 @@
 
 package com.baomidou.lock.test.service;
 
+import com.baomidou.lock.annotation.Lock4j;
+import com.baomidou.lock.executor.RedisTemplateLockExecutor;
 import com.baomidou.lock.test.model.User;
 
 /**
@@ -40,5 +42,8 @@ public interface UserService {
     void nonAutoReleaseLock();
 
     void renewExpirationTemplate();
+
+    @Lock4j(keys ="1",expire = -1,executor = RedisTemplateLockExecutor.class)
+    void usedInInterface();
 
 }

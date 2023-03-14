@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.framework.AopProxyUtils;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.StringUtils;
 
 
@@ -54,7 +55,7 @@ public class LockInterceptor implements MethodInterceptor {
         if (!cls.equals(invocation.getThis().getClass())) {
             return invocation.proceed();
         }
-        Lock4j lock4j = invocation.getMethod().getAnnotation(Lock4j.class);
+        Lock4j lock4j = AnnotatedElementUtils.findMergedAnnotation(invocation.getMethod(),Lock4j.class);
         LockInfo lockInfo = null;
         try {
             String prefix = lock4jProperties.getLockKeyPrefix() + ":";
