@@ -123,6 +123,25 @@ public class SpringBootLockTest {
         Thread.sleep(Long.MAX_VALUE);
     }
 
+    @SneakyThrows
+    @Test
+    public void spel3Test() {
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        Runnable task = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    userService.method3();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        for (int i = 0; i < 100; i++) {
+            executorService.submit(task);
+        }
+        Thread.sleep(Long.MAX_VALUE);
+    }
     /**
      * 编程式锁
      */

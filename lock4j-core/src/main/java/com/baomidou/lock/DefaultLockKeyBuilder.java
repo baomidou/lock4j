@@ -51,15 +51,17 @@ public class DefaultLockKeyBuilder implements LockKeyBuilder {
 
     @Override
     public String buildKey(MethodInvocation invocation, String[] definitionKeys) {
-        Method method = invocation.getMethod();
         if (definitionKeys.length > 1 || !"".equals(definitionKeys[0])) {
-            return getSpelDefinitionKey(definitionKeys, method, invocation.getArguments());
+            return getSpelDefinitionKey(definitionKeys,invocation);
         }
         return "";
     }
 
-    protected String getSpelDefinitionKey(String[] definitionKeys, Method method, Object[] parameterValues) {
-        StandardEvaluationContext context = new MethodBasedEvaluationContext(null, method, parameterValues, NAME_DISCOVERER);
+    protected String getSpelDefinitionKey(String[] definitionKeys, MethodInvocation invocation) {
+        Method method = invocation.getMethod();
+        Object[] arguments = invocation.getArguments();
+        Object rootObject = invocation.getThis();
+        StandardEvaluationContext context = new MethodBasedEvaluationContext(rootObject, method, arguments, NAME_DISCOVERER);
         context.setBeanResolver(beanResolver);
         List<String> definitionKeyList = new ArrayList<>(definitionKeys.length);
         for (String definitionKey : definitionKeys) {

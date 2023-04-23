@@ -33,6 +33,8 @@ public interface UserService {
 
     User method2(User user);
 
+    void method3();
+
     void programmaticLock(String userId);
 
     void reentrantMethod1();
