@@ -22,6 +22,7 @@ import com.baomidou.lock.annotation.Lock4j;
 import com.baomidou.lock.executor.RedisTemplateLockExecutor;
 import com.baomidou.lock.executor.RedissonLockExecutor;
 import com.baomidou.lock.test.model.User;
+import com.baomidou.lock.test.model.UserB;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,9 @@ public class UserServiceImpl implements UserService{
     LockTemplate lockTemplate;
     @Autowired
     StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    public UserB userB;
 
     private int counter = 1;
 
@@ -80,6 +84,18 @@ public class UserServiceImpl implements UserService{
             e.printStackTrace();
         }
         return user;
+    }
+
+    @Override
+    @Lock4j(keys = {"userB.id", "userB.name"}, acquireTimeout = 5000, expire = 5000)
+    public void method3() {
+        System.out.println("执行spel方法3 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
+        //模拟锁占用
+        try {
+            Thread.sleep(4000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
