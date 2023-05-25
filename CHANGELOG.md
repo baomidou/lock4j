@@ -1,3 +1,10 @@
+# v2.2.5
+
+- feat: 新增redisTemplateExecutor锁续期
+- feat: Lock4j注解支持接口和父类上使用
+- feat: 适配Spring5.0以下
+- feat: spel支持rootObject上下文
+
 # v2.2.4
 
 - feat: springboot3支持
