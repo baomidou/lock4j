@@ -228,4 +228,42 @@ public class SpringBootLockTest {
         Thread.sleep(Long.MAX_VALUE);
     }
 
+    /**
+     * 方法级自定义锁失败策略
+     */
+    @SneakyThrows
+    @Test
+    public void customLockFailureStrategy() {
+        ExecutorService executorService = Executors.newFixedThreadPool(5);
+        Runnable task = new Runnable() {
+            @Override
+            public void run() {
+                userService.customLockFailureStrategy();
+            }
+        };
+        for (int i = 0; i < 5; i++) {
+            executorService.submit(task);
+        }
+        Thread.sleep(Long.MAX_VALUE);
+    }
+
+    /**
+     * 方法级自定义锁失败策略通过order|PriorityOrdered接口控制
+     */
+    @SneakyThrows
+    @Test
+    public void customLockFailureStrategy2(){
+        ExecutorService executorService = Executors.newFixedThreadPool(5);
+        Runnable task = new Runnable() {
+            @Override
+            public void run() {
+                userService.customLockFailureStrategy2();
+            }
+        };
+        for (int i = 0; i < 5; i++) {
+            executorService.submit(task);
+        }
+        Thread.sleep(Long.MAX_VALUE);
+    }
+
 }

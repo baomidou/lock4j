@@ -16,6 +16,8 @@
 
 package com.baomidou.lock.spring.boot.autoconfigure;
 
+import com.baomidou.lock.LockFailureStrategy;
+import com.baomidou.lock.LockKeyBuilder;
 import com.baomidou.lock.executor.LockExecutor;
 import lombok.Getter;
 import lombok.Setter;
@@ -50,6 +52,14 @@ public class Lock4jProperties {
      * 默认执行器，不设置默认取容器第一个(默认注入顺序，redisson>redisTemplate>zookeeper)
      */
     private Class<? extends LockExecutor> primaryExecutor;
+    /**
+     * 默认失败策略，不设置存在多个时默认根据PriorityOrdered、Ordered排序规则选择|注入顺序选择
+     */
+    private Class<? extends LockFailureStrategy> primaryFailureStrategy;
+    /**
+     * 默认key生成策略，不设置存在多个时默认根据PriorityOrdered、Ordered排序规则选择|注入顺序选择
+     */
+    private Class<? extends LockKeyBuilder> primaryKeyBuilder;
 
     /**
      * 锁key前缀

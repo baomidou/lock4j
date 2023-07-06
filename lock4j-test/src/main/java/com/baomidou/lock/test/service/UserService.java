@@ -48,4 +48,7 @@ public interface UserService {
     @Lock4j(keys ="1",expire = -1,executor = RedisTemplateLockExecutor.class)
     void usedInInterface();
 
+    void customLockFailureStrategy();
+
+    void customLockFailureStrategy2();
 }

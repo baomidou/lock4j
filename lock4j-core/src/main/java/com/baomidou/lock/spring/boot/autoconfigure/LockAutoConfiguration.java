@@ -71,9 +71,9 @@ public class LockAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public LockInterceptor lockInterceptor(@Lazy LockTemplate lockTemplate, LockKeyBuilder lockKeyBuilder,
-                                           LockFailureStrategy lockFailureStrategy) {
-        return new LockInterceptor(lockTemplate, lockKeyBuilder, lockFailureStrategy, properties);
+    public LockInterceptor lockInterceptor(@Lazy LockTemplate lockTemplate, List<LockKeyBuilder> keyBuilders,
+                                           List<LockFailureStrategy> failureStrategies) {
+        return new LockInterceptor(lockTemplate, keyBuilders, failureStrategies, properties);
     }
 
     @Bean

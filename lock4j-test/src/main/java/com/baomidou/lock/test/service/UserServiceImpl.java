@@ -21,6 +21,8 @@ import com.baomidou.lock.LockTemplate;
 import com.baomidou.lock.annotation.Lock4j;
 import com.baomidou.lock.executor.RedisTemplateLockExecutor;
 import com.baomidou.lock.executor.RedissonLockExecutor;
+import com.baomidou.lock.test.custom.CustomLockFailureStrategy2;
+import com.baomidou.lock.test.custom.CustomLockKeyBuilder2;
 import com.baomidou.lock.test.model.User;
 import com.baomidou.lock.test.model.UserB;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -159,6 +161,28 @@ public class UserServiceImpl implements UserService{
     @Override
     public void usedInInterface() {
         System.out.println("执行usedInInterface方法 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
+    }
+
+    @Override
+    @Lock4j(keys ="1",expire = -1,executor = RedisTemplateLockExecutor.class,failStrategy = CustomLockFailureStrategy2.class,keyBuilderStrategy = CustomLockKeyBuilder2.class)
+    public void customLockFailureStrategy() {
+        System.out.println("执行customLockFailureStrategy方法 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    @Lock4j(keys ="1",expire = -1,executor = RedisTemplateLockExecutor.class)
+    public void customLockFailureStrategy2() {
+        System.out.println("执行customLockFailureStrategy1方法 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
 }

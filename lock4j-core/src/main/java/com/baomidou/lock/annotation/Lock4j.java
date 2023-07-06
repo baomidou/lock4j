@@ -16,6 +16,8 @@
 
 package com.baomidou.lock.annotation;
 
+import com.baomidou.lock.LockFailureStrategy;
+import com.baomidou.lock.LockKeyBuilder;
 import com.baomidou.lock.executor.LockExecutor;
 import com.baomidou.lock.spring.boot.autoconfigure.Lock4jProperties;
 
@@ -78,5 +80,19 @@ public @interface Lock4j {
      * @return 是否自动释放锁
      */
     boolean autoRelease() default true;
+
+    /**
+     * 失败策略
+     *
+     * @return LockFailureStrategy
+     */
+    Class<? extends LockFailureStrategy> failStrategy() default LockFailureStrategy.class;
+
+    /**
+     * key生成器策略
+     *
+     * @return LockKeyBuilder
+     */
+    Class<? extends LockKeyBuilder> keyBuilderStrategy() default LockKeyBuilder.class;
 
 }

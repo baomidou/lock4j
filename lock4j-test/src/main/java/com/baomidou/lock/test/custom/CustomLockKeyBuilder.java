@@ -18,6 +18,7 @@ package com.baomidou.lock.test.custom;
 
 import com.baomidou.lock.DefaultLockKeyBuilder;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 /**
@@ -26,9 +27,14 @@ import org.springframework.stereotype.Component;
  * @author zengzhihong
  */
 @Component
-public class CustomLockKeyBuilder extends DefaultLockKeyBuilder {
+public class CustomLockKeyBuilder extends DefaultLockKeyBuilder implements Ordered {
 
     public CustomLockKeyBuilder(BeanFactory beanFactory) {
         super(beanFactory);
+    }
+
+    @Override
+    public int getOrder() {
+        return 0;
     }
 }
