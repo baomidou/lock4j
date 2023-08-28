@@ -38,6 +38,7 @@
             <groupId>org.redisson</groupId>
             <artifactId>redisson-spring-boot-starter</artifactId>
             <version>${redisson.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
