@@ -1,3 +1,9 @@
+# v2.2.6
+- feat: 支持方法级自定义key生成策略、失败策略
+- fix: 重入后释放锁问题
+- update: 取消RedisTemplate和Redisson依赖传递
+- fix: 修复 boot3.2 启动警告问题
+
 # v2.2.5
 
 - feat: 新增redisTemplateExecutor锁续期
