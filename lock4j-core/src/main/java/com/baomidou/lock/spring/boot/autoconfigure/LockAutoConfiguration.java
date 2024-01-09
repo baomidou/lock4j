@@ -25,10 +25,8 @@ import com.baomidou.lock.aop.LockAnnotationAdvisor;
 import com.baomidou.lock.aop.LockInterceptor;
 import com.baomidou.lock.executor.LockExecutor;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -44,18 +42,19 @@ import java.util.List;
  */
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties(Lock4jProperties.class)
 public class LockAutoConfiguration {
 
-    @Lazy
-    @Autowired
-    private Lock4jProperties properties;
+    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+    @Bean
+    public Lock4jProperties lock4jProperties() {
+        return new Lock4jProperties();
+    }
 
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
     @SuppressWarnings("rawtypes")
     @Bean
     @ConditionalOnMissingBean
-    public LockTemplate lockTemplate(List<LockExecutor> executors) {
+    public LockTemplate lockTemplate(List<LockExecutor> executors, Lock4jProperties properties) {
         LockTemplate lockTemplate = new LockTemplate();
         lockTemplate.setProperties(properties);
         lockTemplate.setExecutors(executors);
@@ -80,7 +79,7 @@ public class LockAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public LockInterceptor lockInterceptor(@Lazy LockTemplate lockTemplate, List<LockKeyBuilder> keyBuilders,
-                                           List<LockFailureStrategy> failureStrategies) {
+                                           List<LockFailureStrategy> failureStrategies, Lock4jProperties properties) {
         return new LockInterceptor(lockTemplate, keyBuilders, failureStrategies, properties);
     }
 
