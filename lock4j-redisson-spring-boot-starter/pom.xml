@@ -16,18 +16,18 @@
   -->
 
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>lock4j</artifactId>
         <groupId>com.baomidou</groupId>
         <version>2.2.7</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
+    
     <artifactId>lock4j-redisson-spring-boot-starter</artifactId>
     <packaging>jar</packaging>
-
+    
     <dependencies>
         <dependency>
             <groupId>com.baomidou</groupId>
@@ -39,6 +39,11 @@
             <artifactId>redisson-spring-boot-starter</artifactId>
             <version>${redisson.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 </project>
