@@ -16,11 +16,13 @@
 
 package com.baomidou.lock.executor;
 
+import com.baomidou.lock.spring.boot.autoconfigure.ZookeeperLockProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
+import org.apache.zookeeper.KeeperException;
 
 import java.util.concurrent.TimeUnit;
 
@@ -32,34 +34,54 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @RequiredArgsConstructor
 public class ZookeeperLockExecutor extends AbstractLockExecutor<InterProcessMutex> {
-
+    
     private final CuratorFramework curatorFramework;
-
+    
+    private final ZookeeperLockProperties zookeeperLockProperties;
+    
     @Override
     public InterProcessMutex acquire(String lockKey, String lockValue, long expire, long acquireTimeout) {
         if (!CuratorFrameworkState.STARTED.equals(curatorFramework.getState())) {
             log.warn("instance must be started before calling this method");
             return null;
         }
-        String nodePath = "/curator/lock4j/%s";
         try {
-            InterProcessMutex mutex = new InterProcessMutex(curatorFramework, String.format(nodePath, lockKey));
+            InterProcessMutex mutex = new InterProcessMutex(curatorFramework, obtainPath(lockKey));
             final boolean locked = mutex.acquire(acquireTimeout, TimeUnit.MILLISECONDS);
             return obtainLockInstance(locked, mutex);
         } catch (Exception e) {
             return null;
         }
     }
-
+    
     @Override
     public boolean releaseLock(String key, String value, InterProcessMutex lockInstance) {
         try {
             lockInstance.release();
+            deleteOurPath(obtainPath(key));
         } catch (Exception e) {
             log.warn("zookeeper lock release error", e);
             return false;
         }
         return true;
     }
-
+    
+    private void deleteOurPath(String ourPath) throws Exception {
+        try {
+            curatorFramework.delete().guaranteed().forPath(ourPath);
+        } catch (KeeperException.NoNodeException e) {
+            // ignore - already deleted (possibly expired session, etc.)
+        }
+    }
+    
+    /**
+     * Full Path = namespace + basePath + lockKey
+     *
+     * @param lockKey
+     * @return
+     */
+    private String obtainPath(String lockKey) {
+        return zookeeperLockProperties.getBasePath() + "/" + lockKey;
+    }
+    
 }
