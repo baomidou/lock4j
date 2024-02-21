@@ -1,0 +1,12 @@
+spring:
+  coordinate:
+    zookeeper:
+      zk-servers: 127.0.0.1:2181
+      namespace: wf
+logging:
+  level:
+    com.baomidou: debug
+lock4j:
+  acquire-timeout: 3000
+  expire: 30000
+  lock-key-prefix: test-key-prefix
