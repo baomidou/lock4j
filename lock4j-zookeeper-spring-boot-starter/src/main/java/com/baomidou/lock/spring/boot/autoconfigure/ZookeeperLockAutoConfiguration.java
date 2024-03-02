@@ -24,7 +24,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.annotation.Order;
@@ -35,35 +35,26 @@ import org.springframework.core.annotation.Order;
  * @author zengzhihong
  */
 @Conditional(ZookeeperCondition.class)
-@ConfigurationProperties(prefix = "spring.coordinate.zookeeper")
+@EnableConfigurationProperties(ZookeeperLockProperties.class)
 @Data
 class ZookeeperLockAutoConfiguration {
 
-    private String zkServers;
-
-    private int sessionTimeout = 30000;
-
-    private int connectionTimeout = 5000;
-
-    private int baseSleepTimeMs = 1000;
-
-    private int maxRetries = 3;
-
     @Bean(initMethod = "start", destroyMethod = "close")
     @ConditionalOnMissingBean(CuratorFramework.class)
-    public CuratorFramework curatorFramework() {
-        RetryPolicy retryPolicy = new ExponentialBackoffRetry(this.baseSleepTimeMs, this.maxRetries);
+    public CuratorFramework curatorFramework(ZookeeperLockProperties zookeeperLockProperties) {
+        RetryPolicy retryPolicy = new ExponentialBackoffRetry(zookeeperLockProperties.getBaseSleepTimeMs(), zookeeperLockProperties.getMaxRetries());
         return CuratorFrameworkFactory.builder()
-                .connectString(this.zkServers)
-                .sessionTimeoutMs(this.sessionTimeout)
-                .connectionTimeoutMs(this.connectionTimeout)
+                .connectString(zookeeperLockProperties.getZkServers())
+                .sessionTimeoutMs(zookeeperLockProperties.getSessionTimeout())
+                .connectionTimeoutMs(zookeeperLockProperties.getConnectionTimeout())
                 .retryPolicy(retryPolicy)
+                .namespace(zookeeperLockProperties.getNamespace())
                 .build();
     }
 
     @Bean
     @Order(300)
-    public ZookeeperLockExecutor zookeeperLockExecutor(CuratorFramework curatorFramework) {
-        return new ZookeeperLockExecutor(curatorFramework);
+    public ZookeeperLockExecutor zookeeperLockExecutor(ZookeeperLockProperties zookeeperLockProperties, CuratorFramework curatorFramework) {
+        return new ZookeeperLockExecutor(curatorFramework, zookeeperLockProperties);
     }
 }

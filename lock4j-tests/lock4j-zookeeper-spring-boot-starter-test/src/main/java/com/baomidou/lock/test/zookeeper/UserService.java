@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018-2022, baomidou (63976799@qq.com).
+ *  Copyright (c) 2018-2021, baomidou (63976799@qq.com).
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,22 +14,14 @@
  *  limitations under the License.
  */
 
-package com.baomidou.lock;
-
-import com.baomidou.lock.exception.LockFailureException;
-
-import java.lang.reflect.Method;
+package com.baomidou.lock.test.zookeeper;
 
 /**
  * @author zengzhihong
  */
-public class DefaultLockFailureStrategy implements LockFailureStrategy {
+public interface UserService {
     
-    protected static String DEFAULT_MESSAGE = "request failed,please retry it.";
+    void simple1();
     
-    @Override
-    public void onLockFailure(String key, Method method, Object[] arguments) {
-        String message = String.format(DEFAULT_MESSAGE + "key:%s", key);
-        throw new LockFailureException(message);
-    }
+    void simple2(String myKey);
 }
