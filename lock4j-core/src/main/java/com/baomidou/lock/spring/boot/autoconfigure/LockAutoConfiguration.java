@@ -17,8 +17,9 @@
 package com.baomidou.lock.spring.boot.autoconfigure;
 
 import com.baomidou.lock.*;
+import com.baomidou.lock.aop.ConditionalLockOpsInterceptor;
+import com.baomidou.lock.aop.Lock4jMethodInterceptor;
 import com.baomidou.lock.aop.LockAnnotationAdvisor;
-import com.baomidou.lock.aop.LockInterceptor;
 import com.baomidou.lock.executor.LocalLockExecutor;
 import com.baomidou.lock.executor.LockExecutor;
 import org.springframework.beans.factory.BeanFactory;
@@ -26,7 +27,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Role;
 import org.springframework.core.Ordered;
 
@@ -74,16 +74,16 @@ public class LockAutoConfiguration {
 
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
     @Bean
-    @ConditionalOnMissingBean
-    public LockInterceptor lockInterceptor(@Lazy LockTemplate lockTemplate, List<LockKeyBuilder> keyBuilders,
-                                           List<LockFailureStrategy> failureStrategies, Lock4jProperties properties) {
-        return new LockInterceptor(lockTemplate, keyBuilders, failureStrategies, properties);
+    @ConditionalOnMissingBean(Lock4jMethodInterceptor.class)
+    public ConditionalLockOpsInterceptor conditionalLockOpsInterceptor(
+        Lock4jProperties lock4jProperties, LockTemplate lockTemplate) {
+        return new ConditionalLockOpsInterceptor(lock4jProperties, lockTemplate);
     }
 
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
     @Bean
     @ConditionalOnMissingBean
-    public LockAnnotationAdvisor lockAnnotationAdvisor(LockInterceptor lockInterceptor) {
+    public LockAnnotationAdvisor lockAnnotationAdvisor(Lock4jMethodInterceptor lockInterceptor) {
         return new LockAnnotationAdvisor(lockInterceptor, Ordered.HIGHEST_PRECEDENCE);
     }
 

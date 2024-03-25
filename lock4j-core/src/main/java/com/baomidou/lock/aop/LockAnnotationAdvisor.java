@@ -25,7 +25,6 @@ import org.springframework.aop.Pointcut;
 import org.springframework.aop.support.AbstractPointcutAdvisor;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.aop.support.StaticMethodMatcher;
-import org.springframework.aop.support.annotation.AnnotationMatchingPointcut;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -43,11 +42,11 @@ import java.lang.reflect.Proxy;
  */
 public class LockAnnotationAdvisor extends AbstractPointcutAdvisor implements BeanFactoryAware {
 
-    private final Advice advice;
+    private final Lock4jMethodInterceptor advice;
 
     private final Pointcut pointcut = new AnnotationMethodPoint(Lock4j.class);
 
-    public LockAnnotationAdvisor(@NonNull LockInterceptor lockInterceptor, int order) {
+    public LockAnnotationAdvisor(@NonNull Lock4jMethodInterceptor lockInterceptor, int order) {
         this.advice = lockInterceptor;
         setOrder(order);
     }
