@@ -43,6 +43,12 @@ public class SpringBootLockTest {
         SpringApplication.run(SpringBootLockTest.class, args);
     }
 
+    @Test
+    void conditionTest() {
+        userService.condition1(-1);
+        userService.condition1(1);
+    }
+
     @SneakyThrows
     @Test
     public void localLockTest() {

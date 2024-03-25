@@ -16,6 +16,8 @@
 
 package com.baomidou.lock.test.service;
 
+import com.baomidou.lock.DefaultLockFailureStrategy;
+import com.baomidou.lock.DefaultLockKeyBuilder;
 import com.baomidou.lock.LockInfo;
 import com.baomidou.lock.LockTemplate;
 import com.baomidou.lock.annotation.Lock4j;
@@ -52,6 +54,15 @@ public class UserServiceImpl implements UserService{
     public void localLock1(long blockTimeMillis) {
         System.out.println("执行本地锁方法1 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
         LockSupport.parkNanos(blockTimeMillis * 1000000);
+    }
+
+    @Lock4j(
+        condition = "#id > 0",
+        keys = "#id", keyBuilderStrategy = DefaultLockKeyBuilder.class,
+        failStrategy = DefaultLockFailureStrategy.class)
+    @Override
+    public void condition1(Integer id) {
+        System.out.println("执行condition1方法 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
     }
 
     @Override
