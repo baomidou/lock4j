@@ -44,6 +44,11 @@ public class SpringBootLockTest {
     }
 
     @Test
+    void multiConditionTest() {
+        userService.multiCondition1(24);
+    }
+
+    @Test
     void conditionTest() {
         userService.condition1(-1);
         userService.condition1(1);

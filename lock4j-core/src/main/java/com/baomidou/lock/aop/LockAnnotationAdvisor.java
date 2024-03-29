@@ -24,6 +24,7 @@ import org.springframework.aop.MethodMatcher;
 import org.springframework.aop.Pointcut;
 import org.springframework.aop.support.AbstractPointcutAdvisor;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.aop.support.ComposablePointcut;
 import org.springframework.aop.support.StaticMethodMatcher;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -44,7 +45,8 @@ public class LockAnnotationAdvisor extends AbstractPointcutAdvisor implements Be
 
     private final Lock4jMethodInterceptor advice;
 
-    private final Pointcut pointcut = new AnnotationMethodPoint(Lock4j.class);
+    private final Pointcut pointcut = new ComposablePointcut(new AnnotationMethodPoint(Lock4j.class))
+        .union(new AnnotationMethodPoint(Lock4j.List.class));
 
     public LockAnnotationAdvisor(@NonNull Lock4jMethodInterceptor lockInterceptor, int order) {
         this.advice = lockInterceptor;

@@ -1,25 +1,19 @@
 package com.baomidou.lock.aop;
 
-import com.baomidou.lock.LockTemplate;
 import com.baomidou.lock.annotation.Lock4j;
-import com.baomidou.lock.spring.boot.autoconfigure.Lock4jProperties;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.Delegate;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
-import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.expression.BeanResolver;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.lang.NonNull;
 import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -33,8 +27,9 @@ import java.util.Map;
  *
  * @author huangchengxing
  */
-public class ConditionalLockOpsInterceptor
-    extends LockOpsInterceptor implements EmbeddedValueResolverAware {
+@RequiredArgsConstructor
+public abstract class AbstractConditionalLockInterceptor
+    extends AbstractLockInterceptor implements EmbeddedValueResolverAware {
 
     private static final MapAccessor MAP_ACCESSOR = new MapAccessor();
     private static final Map<String, Expression> EXPRESSION_CACHE = new ConcurrentReferenceHashMap<>(32);
@@ -61,33 +56,6 @@ public class ConditionalLockOpsInterceptor
     private BeanResolver beanResolver;
 
     /**
-     * 创建一个新的{@link ConditionalLockOpsInterceptor}实例。
-     *
-     * @param lock4jProperties       锁配置
-     * @param lockTemplate           锁模板
-     */
-    public ConditionalLockOpsInterceptor(
-        Lock4jProperties lock4jProperties, LockTemplate lockTemplate) {
-        this(lock4jProperties, lockTemplate, new SpelExpressionParser(), new DefaultParameterNameDiscoverer());
-    }
-
-    /**
-     * 创建一个新的{@link ConditionalLockOpsInterceptor}实例。
-     *
-     * @param lock4jProperties       锁配置
-     * @param lockTemplate           锁模板
-     * @param expressionParser       表达式解析器
-     * @param parameterNameDiscoverer 参数名发现器
-     */
-    public ConditionalLockOpsInterceptor(
-        Lock4jProperties lock4jProperties, LockTemplate lockTemplate,
-        @NonNull ExpressionParser expressionParser, @NonNull ParameterNameDiscoverer parameterNameDiscoverer) {
-        super(lock4jProperties, lockTemplate);
-        this.expressionParser = expressionParser;
-        this.parameterNameDiscoverer = parameterNameDiscoverer;
-    }
-
-    /**
      * Spring上下文
      *
      * @param applicationContext Spring上下文
@@ -108,29 +76,11 @@ public class ConditionalLockOpsInterceptor
     protected LockOps createLockOps(Lock4j annotation) {
         LockOps delegate = super.createLockOps(annotation);
         String condition = annotation.condition();
-        return StringUtils.hasText(condition) ?
-            new ConditionalLockOps(delegate, condition) : delegate;
-    }
-
-    /**
-     * 进行加锁
-     *
-     * @param invocation 方法调用
-     * @param lockOps    锁操作
-     * @return 锁信息
-     * @throws Throwable 调用异常
-     */
-    @Override
-    protected Object doLock(MethodInvocation invocation, LockOps lockOps) throws Throwable {
-        if (!(lockOps instanceof ConditionalLockOps)) {
-            return super.doLock(invocation, lockOps);
+        if (!StringUtils.hasText(condition)) {
+            return delegate;
         }
-        String condition = ((ConditionalLockOps) lockOps).getCondition();
         condition = embeddedValueResolver.resolveStringValue(condition);
-        if (!evaluateCondition(condition, lockOps, invocation)) {
-            return invocation.proceed();
-        }
-        return super.doLock(invocation, lockOps);
+        return new ConditionalLockOps(delegate, condition);
     }
 
     /**
@@ -142,6 +92,7 @@ public class ConditionalLockOpsInterceptor
      * @return 是否满足条件
      */
     protected final boolean evaluateCondition(String condition, LockOps lockOps, MethodInvocation invocation) {
+        // TODO 将此部分逻辑提取至公共组件 MethodBasedExpressionEvaluator，DefaultLockKeyBuilder 亦同
         Expression expression = EXPRESSION_CACHE.computeIfAbsent(
             condition, key -> expressionParser.parseExpression(condition)
         );
@@ -153,7 +104,7 @@ public class ConditionalLockOpsInterceptor
      * 创建表达式上下文，默认情况下，将会注册下述变量：
      * <ul>
      *     <li>{@code rootObject}：{@link MethodInvocation}对象；</li>
-     *     <li>{@code #arg0, #arg1...}：方法的调用参数；</li>
+     *     <li>{@code #p0, #p1...}：方法的调用参数；</li>
      *     <li>{@code #参数名1, #参数名2...}：方法的调用参数；</li>
      * </ul>
      *
@@ -177,9 +128,9 @@ public class ConditionalLockOpsInterceptor
         if (ObjectUtils.isEmpty(arguments)) {
             return;
         }
-        // 注册参数，格式为#arg0, #arg1...
+        // 注册参数，格式为#p1, #p2...
         for (int i = 0; i < arguments.length; i++) {
-            context.setVariable("arg" + i, arguments[i]);
+            context.setVariable("p" + i, arguments[i]);
         }
         // 注册参数，格式为#参数名1, #参数名2...
         String[] parameterNames = parameterNameDiscoverer.getParameterNames(method);
@@ -196,10 +147,16 @@ public class ConditionalLockOpsInterceptor
      * @author huangchengxing
      */
     @Getter
-    @RequiredArgsConstructor
-    protected static class ConditionalLockOps implements LockOps {
-        @Delegate
-        private final LockOps delegate;
+    protected class ConditionalLockOps extends AbstractLockOpsDelegate {
         private final String condition;
+        public ConditionalLockOps(LockOps delegate, String condition) {
+            super(delegate);
+            this.condition = condition;
+        }
+        @Override
+        public MethodInvocation attach(MethodInvocation invocation) {
+            return evaluateCondition(condition, delegate, invocation) ?
+                delegate.attach(invocation) : invocation;
+        }
     }
 }

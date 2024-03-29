@@ -3,9 +3,9 @@ package com.baomidou.lock.aop;
 import com.baomidou.lock.LockFailureStrategy;
 import com.baomidou.lock.LockKeyBuilder;
 import com.baomidou.lock.annotation.Lock4j;
-import com.baomidou.lock.spring.boot.autoconfigure.Lock4jProperties;
+import com.baomidou.lock.util.ThrowableFunction;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
+import lombok.experimental.Accessors;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.factory.InitializingBean;
@@ -19,8 +19,8 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ConcurrentReferenceHashMap;
 
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -31,7 +31,7 @@ import java.util.Optional;
  * @author huangchengxing
  */
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class AbstractLockOpsInterceptor
+public abstract class AbstractLockInterceptor
     implements InitializingBean, ApplicationContextAware, Lock4jMethodInterceptor {
 
     /**
@@ -49,11 +49,6 @@ public abstract class AbstractLockOpsInterceptor
      */
     @Setter
     protected ApplicationContext applicationContext;
-
-    /**
-     * 配置
-     */
-    protected final Lock4jProperties lock4jProperties;
 
     /**
      * 默认的锁操作配置
@@ -74,8 +69,8 @@ public abstract class AbstractLockOpsInterceptor
             invocation.getMethod(),
             method -> Optional.ofNullable(resolveLockOps(invocation)).orElse(NULL)
         );
-        return lockOps == NULL ?
-            invocation.proceed() : doLock(invocation, lockOps);
+        MethodInvocation invocationWithLock = lockOps.attach(invocation);
+        return invocationWithLock.proceed();
     }
 
     @Override
@@ -121,13 +116,10 @@ public abstract class AbstractLockOpsInterceptor
             .flatMap(components -> components.stream().min(AnnotationAwareOrderComparator.INSTANCE))
             .map(LockFailureStrategy.class::cast)
             .orElse(defaultLockOps.getLockFailureStrategy());
-        return LockOpsImpl.builder()
-            .annotation(annotation)
-            .lockKeyBuilder(keyBuilder)
-            .lockFailureStrategy(failureStrategy)
-            .build();
+        return new LockOpsImpl(annotation)
+            .setLockKeyBuilder(keyBuilder)
+            .setLockFailureStrategy(failureStrategy);
     }
-
 
     /**
      * 初始化默认的锁操作配置
@@ -135,41 +127,25 @@ public abstract class AbstractLockOpsInterceptor
      * @return 默认的锁操作配置
      */
     @NonNull
-    protected LockOps initDefaultLockOps() {
-        LockKeyBuilder lockKeyBuilder = obtainComponent(LockKeyBuilder.class, lock4jProperties.getPrimaryKeyBuilder());
-        LockFailureStrategy lockFailureStrategy = obtainComponent(LockFailureStrategy.class, lock4jProperties.getPrimaryFailureStrategy());
-        return LockOpsImpl.builder()
-            .lockKeyBuilder(lockKeyBuilder)
-            .lockFailureStrategy(lockFailureStrategy)
-            .build();
-    }
-
-    private <C> C obtainComponent(Class<C> type, @Nullable Class<? extends C> defaultType) {
-        // TODO 支持根据 beanName 获取相应组件
-        if (Objects.nonNull(defaultType)) {
-            return applicationContext.getBean(defaultType);
-        }
-        Collection<C> components = applicationContext.getBeansOfType(type).values();
-        return components.stream()
-            .min(AnnotationAwareOrderComparator.INSTANCE)
-            .orElseThrow(() -> new IllegalArgumentException("No component of type " + type.getName() + " found"));
-    }
+    protected abstract LockOps initDefaultLockOps();
 
     /**
-     * 进行加锁
+     * <p>获取锁，并执行方法调用。实现类需实现该方法，以实现具体加锁和解锁逻辑。
      *
-     * @param invocation 方法调用
      * @param lockOps 锁操作
+     * @param invocation 方法调用
      * @return 锁信息
      * @throws Throwable 调用异常
      */
-    protected abstract Object doLock(MethodInvocation invocation, LockOps lockOps) throws Throwable;
+    protected abstract Object doLock(LockOps lockOps, MethodInvocation invocation) throws Throwable;
 
     /**
      * 锁操作
      *
      * @author huangchengxing
      * @see #createLockOps
+     * @see NullLockOps
+     * @see AbstractLockOpsDelegate
      */
     protected interface LockOps extends Ordered {
 
@@ -201,7 +177,17 @@ public abstract class AbstractLockOpsInterceptor
          */
         @Override
         default int getOrder() {
-            return Ordered.LOWEST_PRECEDENCE;
+            return getAnnotation().order();
+        }
+
+        /**
+         * 包装方法调用
+         *
+         * @param invocation 方法调用
+         * @return 方法调用
+         */
+        default MethodInvocation attach(MethodInvocation invocation) {
+            return invocation;
         }
     }
 
@@ -226,10 +212,12 @@ public abstract class AbstractLockOpsInterceptor
     /**
      * 默认的锁操作实现
      */
+    @Accessors(chain = true)
     @Getter
-    @SuperBuilder
+    @Setter
+    @RequiredArgsConstructor
     @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-    protected static class LockOpsImpl implements LockOps {
+    protected class LockOpsImpl implements LockOps {
 
         /**
          * 锁注解
@@ -250,7 +238,70 @@ public abstract class AbstractLockOpsInterceptor
         /**
          * 顺序
          */
-        @Builder.Default
         private int order = Ordered.LOWEST_PRECEDENCE;
+
+        /**
+         * 包装方法调用
+         *
+         * @param invocation 方法调用
+         * @return 方法调用
+         */
+        @Override
+        public MethodInvocation attach(MethodInvocation invocation) {
+            return new DelegatedMethodInvocation(invocation, inv -> doLock(this, inv));
+        }
+    }
+
+    /**
+     * 锁操作信息委托类
+     */
+    @RequiredArgsConstructor
+    protected abstract static class AbstractLockOpsDelegate implements LockOps {
+        protected final LockOps delegate;
+        @Override
+        public Lock4j getAnnotation() {
+            return delegate.getAnnotation();
+        }
+        @Override
+        public LockKeyBuilder getLockKeyBuilder() {
+            return delegate.getLockKeyBuilder();
+        }
+        @Override
+        public LockFailureStrategy getLockFailureStrategy() {
+            return delegate.getLockFailureStrategy();
+        }
+        @Override
+        public int getOrder() {
+            return delegate.getOrder();
+        }
+    }
+
+    @RequiredArgsConstructor
+    private static class DelegatedMethodInvocation implements MethodInvocation {
+        private final MethodInvocation delegate;
+        private final ThrowableFunction<MethodInvocation, Object> invoker;
+        @Override
+        public Object proceed() throws Throwable {
+            return invoker.apply(delegate);
+        }
+        @Override
+        public Object getThis() {
+            return delegate.getThis();
+        }
+        @NonNull
+        @Override
+        public AccessibleObject getStaticPart() {
+            return delegate.getStaticPart();
+        }
+        @NonNull
+        @Override
+        public Method getMethod() {
+            return delegate.getMethod();
+        }
+        @NonNull
+        @Override
+        public Object[] getArguments() {
+            return delegate.getArguments();
+        }
     }
 }

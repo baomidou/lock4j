@@ -27,6 +27,8 @@ public interface UserService {
 
     void localLock1(long blockTimeMillis);
 
+    void multiCondition1(Integer id);
+
     void condition1(Integer id);
 
     void simple1();

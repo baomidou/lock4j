@@ -20,6 +20,7 @@ import com.baomidou.lock.LockFailureStrategy;
 import com.baomidou.lock.LockKeyBuilder;
 import com.baomidou.lock.executor.LockExecutor;
 import com.baomidou.lock.spring.boot.autoconfigure.Lock4jProperties;
+import org.springframework.core.Ordered;
 
 import java.lang.annotation.*;
 
@@ -29,6 +30,7 @@ import java.lang.annotation.*;
  * @author zengzhihong TaoYu
  */
 // TODO 是否允许作为元注解使用，从而支持Spring组合注解机制
+@Repeatable(Lock4j.List.class)
 @Target(value = {ElementType.METHOD})
 @Retention(value = RetentionPolicy.RUNTIME)
 @Inherited
@@ -98,4 +100,18 @@ public @interface Lock4j {
      */
     Class<? extends LockKeyBuilder> keyBuilderStrategy() default LockKeyBuilder.class;
 
+    /**
+     * 获取顺序，值越小越先执行
+     *
+     * @return 顺序值
+     */
+    int order() default Ordered.LOWEST_PRECEDENCE;
+
+    @Target(value = {ElementType.METHOD})
+    @Retention(value = RetentionPolicy.RUNTIME)
+    @Inherited
+    @Documented
+    @interface List {
+        Lock4j[] value();
+    }
 }

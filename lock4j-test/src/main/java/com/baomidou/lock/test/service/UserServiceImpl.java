@@ -57,9 +57,34 @@ public class UserServiceImpl implements UserService{
     }
 
     @Lock4j(
+        condition = "#id % 2 == 0",
+        keys = "#id + '0'", keyBuilderStrategy = DefaultLockKeyBuilder.class,
+        failStrategy = DefaultLockFailureStrategy.class,
+
+        order = 0
+    )
+    @Lock4j(
+        condition = "#id % 4 == 0",
+        keys = "#id + '1'", keyBuilderStrategy = DefaultLockKeyBuilder.class,
+        failStrategy = DefaultLockFailureStrategy.class,
+        order = 1
+    )
+    @Lock4j(
+        condition = "#id % 6 == 0",
+        keys = "#id + '2'", keyBuilderStrategy = DefaultLockKeyBuilder.class,
+        failStrategy = DefaultLockFailureStrategy.class,
+        order = 2
+    )
+    @Override
+    public void multiCondition1(Integer id) {
+        System.out.println("执行multiCondition1方法 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
+    }
+
+    @Lock4j(
         condition = "#id > 0",
         keys = "#id", keyBuilderStrategy = DefaultLockKeyBuilder.class,
-        failStrategy = DefaultLockFailureStrategy.class)
+        failStrategy = DefaultLockFailureStrategy.class
+    )
     @Override
     public void condition1(Integer id) {
         System.out.println("执行condition1方法 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));

@@ -17,9 +17,9 @@
 package com.baomidou.lock.spring.boot.autoconfigure;
 
 import com.baomidou.lock.*;
-import com.baomidou.lock.aop.ConditionalLockOpsInterceptor;
 import com.baomidou.lock.aop.Lock4jMethodInterceptor;
 import com.baomidou.lock.aop.LockAnnotationAdvisor;
+import com.baomidou.lock.aop.LockOpsInterceptor;
 import com.baomidou.lock.executor.LocalLockExecutor;
 import com.baomidou.lock.executor.LockExecutor;
 import org.springframework.beans.factory.BeanFactory;
@@ -75,9 +75,9 @@ public class LockAutoConfiguration {
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
     @Bean
     @ConditionalOnMissingBean(Lock4jMethodInterceptor.class)
-    public ConditionalLockOpsInterceptor conditionalLockOpsInterceptor(
+    public LockOpsInterceptor conditionalLockOpsInterceptor(
         Lock4jProperties lock4jProperties, LockTemplate lockTemplate) {
-        return new ConditionalLockOpsInterceptor(lock4jProperties, lockTemplate);
+        return new LockOpsInterceptor(lock4jProperties, lockTemplate);
     }
 
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
