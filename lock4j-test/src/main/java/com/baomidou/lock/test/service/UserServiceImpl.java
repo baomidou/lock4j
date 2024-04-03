@@ -19,6 +19,7 @@ package com.baomidou.lock.test.service;
 import com.baomidou.lock.LockInfo;
 import com.baomidou.lock.LockTemplate;
 import com.baomidou.lock.annotation.Lock4j;
+import com.baomidou.lock.executor.LocalLockExecutor;
 import com.baomidou.lock.executor.RedisTemplateLockExecutor;
 import com.baomidou.lock.executor.RedissonLockExecutor;
 import com.baomidou.lock.test.custom.CustomLockFailureStrategy2;
@@ -30,6 +31,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 @Service
 public class UserServiceImpl implements UserService{
@@ -43,6 +45,14 @@ public class UserServiceImpl implements UserService{
     public UserB userB;
 
     private int counter = 1;
+
+
+    @Lock4j(keys = "1", expire = 500L, executor = LocalLockExecutor.class)
+    @Override
+    public void localLock1(long blockTimeMillis) {
+        System.out.println("执行本地锁方法1 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
+        LockSupport.parkNanos(blockTimeMillis * 1000000);
+    }
 
     @Override
     @Lock4j(executor = RedissonLockExecutor.class)
