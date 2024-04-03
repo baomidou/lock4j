@@ -45,6 +45,19 @@ public class SpringBootLockTest {
 
     @SneakyThrows
     @Test
+    public void localLockTest() {
+        ExecutorService executorService = Executors.newFixedThreadPool(20);
+        for (int i = 0; i < 40; i++) {
+            executorService.submit(() -> userService.localLock1(1000L));
+        }
+        executorService.shutdown();
+        while (!executorService.isTerminated()) {
+            // 等待所有任务都结束
+        }
+    }
+
+    @SneakyThrows
+    @Test
     public void simple1Test() {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         Runnable task = new Runnable() {

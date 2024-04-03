@@ -25,6 +25,8 @@ import com.baomidou.lock.test.model.User;
  */
 public interface UserService {
 
+    void localLock1(long blockTimeMillis);
+
     void simple1();
 
     void simple2(String myKey);
