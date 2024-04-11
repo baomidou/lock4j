@@ -20,24 +20,29 @@ import com.baomidou.lock.LockFailureStrategy;
 import com.baomidou.lock.LockKeyBuilder;
 import com.baomidou.lock.executor.LockExecutor;
 import com.baomidou.lock.spring.boot.autoconfigure.Lock4jProperties;
+import org.springframework.core.Ordered;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * 分布式锁注解
  *
  * @author zengzhihong TaoYu
  */
+// TODO 是否允许作为元注解使用，从而支持Spring组合注解机制
+@Repeatable(Lock4j.List.class)
 @Target(value = {ElementType.METHOD})
 @Retention(value = RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
 public @interface Lock4j {
+
+    /**
+     * 应用条件表达式，当执行结果为{@code true}或{@code 'true'}时，才会执行锁操作
+     *
+     * @return 名称
+     */
+    String condition() default "";
 
     /**
      * 用于多个方法锁同一把锁 可以理解为锁资源名称 为空则会使用 包名+类名+方法名
@@ -95,4 +100,18 @@ public @interface Lock4j {
      */
     Class<? extends LockKeyBuilder> keyBuilderStrategy() default LockKeyBuilder.class;
 
+    /**
+     * 获取顺序，值越小越先执行
+     *
+     * @return 顺序值
+     */
+    int order() default Ordered.LOWEST_PRECEDENCE;
+
+    @Target(value = {ElementType.METHOD})
+    @Retention(value = RetentionPolicy.RUNTIME)
+    @Inherited
+    @Documented
+    @interface List {
+        Lock4j[] value();
+    }
 }
