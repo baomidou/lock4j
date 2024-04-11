@@ -22,7 +22,6 @@ import com.baomidou.lock.aop.LockAnnotationAdvisor;
 import com.baomidou.lock.aop.LockOpsInterceptor;
 import com.baomidou.lock.executor.LocalLockExecutor;
 import com.baomidou.lock.executor.LockExecutor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -40,6 +39,13 @@ import java.util.List;
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 @Configuration(proxyBeanMethods = false)
 public class LockAutoConfiguration {
+
+    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+    @ConditionalOnMissingBean(MethodBasedExpressionEvaluator.class)
+    @Bean
+    public SpelMethodBasedExpressionEvaluator methodBasedExpressionEvaluator() {
+        return new SpelMethodBasedExpressionEvaluator();
+    }
 
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
     @Bean
@@ -61,8 +67,8 @@ public class LockAutoConfiguration {
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
     @Bean
     @ConditionalOnMissingBean
-    public LockKeyBuilder lockKeyBuilder(BeanFactory beanFactory) {
-        return new DefaultLockKeyBuilder(beanFactory);
+    public LockKeyBuilder lockKeyBuilder(MethodBasedExpressionEvaluator methodBasedExpressionEvaluator) {
+        return new DefaultLockKeyBuilder(methodBasedExpressionEvaluator);
     }
 
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
@@ -76,8 +82,9 @@ public class LockAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(Lock4jMethodInterceptor.class)
     public LockOpsInterceptor conditionalLockOpsInterceptor(
+        MethodBasedExpressionEvaluator methodBasedExpressionEvaluator,
         Lock4jProperties lock4jProperties, LockTemplate lockTemplate) {
-        return new LockOpsInterceptor(lock4jProperties, lockTemplate);
+        return new LockOpsInterceptor(methodBasedExpressionEvaluator, lockTemplate, lock4jProperties);
     }
 
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)

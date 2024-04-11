@@ -1,18 +1,11 @@
 package com.baomidou.lock.aop;
 
-import com.baomidou.lock.LockFailureStrategy;
-import com.baomidou.lock.LockInfo;
-import com.baomidou.lock.LockKeyBuilder;
-import com.baomidou.lock.LockTemplate;
+import com.baomidou.lock.*;
 import com.baomidou.lock.annotation.Lock4j;
 import com.baomidou.lock.spring.boot.autoconfigure.Lock4jProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.intercept.MethodInvocation;
-import org.springframework.core.DefaultParameterNameDiscoverer;
-import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
@@ -33,16 +26,11 @@ public class LockOpsInterceptor extends AbstractConditionalLockChainInterceptor 
     protected final Lock4jProperties lock4jProperties;
 
     public LockOpsInterceptor(
-        ExpressionParser expressionParser, ParameterNameDiscoverer parameterNameDiscoverer,
+        MethodBasedExpressionEvaluator methodBasedExpressionEvaluator,
         LockTemplate lockTemplate, Lock4jProperties lock4jProperties) {
-        super(expressionParser, parameterNameDiscoverer);
+        super(methodBasedExpressionEvaluator);
         this.lockTemplate = lockTemplate;
         this.lock4jProperties = lock4jProperties;
-    }
-
-    public LockOpsInterceptor(
-        Lock4jProperties lock4jProperties, LockTemplate lockTemplate) {
-        this(new SpelExpressionParser(), new DefaultParameterNameDiscoverer(), lockTemplate, lock4jProperties);
     }
 
     /**
