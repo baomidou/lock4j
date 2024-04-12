@@ -1,11 +1,10 @@
 package com.baomidou.lock.aop;
 
+import com.baomidou.lock.MethodBasedExpressionEvaluator;
 import com.baomidou.lock.annotation.Lock4j;
 import org.aopalliance.intercept.MethodInvocation;
-import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
-import org.springframework.expression.ExpressionParser;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
@@ -45,12 +44,11 @@ public abstract class AbstractConditionalLockChainInterceptor extends AbstractCo
     /**
      * 创建一个新的{@link AbstractConditionalLockInterceptor}实例。
      *
-     * @param expressionParser        表达式解析器
-     * @param parameterNameDiscoverer 参数名发现器
+     * @param methodBasedExpressionEvaluator 方法调用表达式执行器
      */
     protected AbstractConditionalLockChainInterceptor(
-        ExpressionParser expressionParser, ParameterNameDiscoverer parameterNameDiscoverer) {
-        super(expressionParser, parameterNameDiscoverer);
+        MethodBasedExpressionEvaluator methodBasedExpressionEvaluator) {
+        super(methodBasedExpressionEvaluator);
     }
 
     /**
