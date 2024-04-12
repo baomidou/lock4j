@@ -20,8 +20,9 @@ import com.baomidou.lock.DefaultLockFailureStrategy;
 import com.baomidou.lock.DefaultLockKeyBuilder;
 import com.baomidou.lock.LockInfo;
 import com.baomidou.lock.LockTemplate;
+import com.baomidou.lock.annotation.LocalLock;
 import com.baomidou.lock.annotation.Lock4j;
-import com.baomidou.lock.executor.LocalLockExecutor;
+import com.baomidou.lock.annotation.RedissonLock;
 import com.baomidou.lock.executor.RedisTemplateLockExecutor;
 import com.baomidou.lock.executor.RedissonLockExecutor;
 import com.baomidou.lock.test.custom.CustomLockFailureStrategy2;
@@ -49,7 +50,7 @@ public class UserServiceImpl implements UserService{
     private int counter = 1;
 
 
-    @Lock4j(keys = "1", expire = 500L, executor = LocalLockExecutor.class)
+    @LocalLock(keys = "1", expire = 500L)
     @Override
     public void localLock1(long blockTimeMillis) {
         System.out.println("执行本地锁方法1 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
@@ -122,7 +123,7 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    @Lock4j(keys = {"#user.id", "#user.name"}, acquireTimeout = 5000, expire = 5000)
+    @RedissonLock(keys = {"#user.id", "#user.name"}, acquireTimeout = 5000, expire = 5000)
     public User method2(User user) {
         System.out.println("执行spel方法2 , 当前线程:" + Thread.currentThread().getName() + " , counter：" + (counter++));
         //模拟锁占用
