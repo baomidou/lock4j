@@ -1,40 +1,25 @@
-/*
- *  Copyright (c) 2018-2022, baomidou (63976799@qq.com).
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
-
 package com.baomidou.lock.annotation;
 
 import com.baomidou.lock.LockFailureStrategy;
 import com.baomidou.lock.LockKeyBuilder;
-import com.baomidou.lock.executor.LockExecutor;
+import com.baomidou.lock.executor.RedissonLockExecutor;
 import com.baomidou.lock.spring.boot.autoconfigure.Lock4jProperties;
 import org.springframework.core.Ordered;
 
 import java.lang.annotation.*;
 
 /**
- * 分布式锁注解
+ * 基于{@link org.redisson.Redisson}实现的分布式锁
  *
- * @author zengzhihong TaoYu
+ * @author huangchengxing
+ * @see Lock4j
  */
-@Repeatable(Lock4j.List.class)
+@Lock4j(executor = RedissonLockExecutor.class)
 @Target(value = {ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(value = RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-public @interface Lock4j {
+public @interface RedissonLock {
 
     /**
      * 应用条件表达式，当执行结果为{@code true}或{@code 'true'}时，才会执行锁操作
@@ -49,11 +34,6 @@ public @interface Lock4j {
      * @return 名称
      */
     String name() default "";
-
-    /**
-     * @return lock 执行器
-     */
-    Class<? extends LockExecutor> executor() default LockExecutor.class;
 
     /**
      * support SPEL expresion 锁的key = name + keys
@@ -105,12 +85,4 @@ public @interface Lock4j {
      * @return 顺序值
      */
     int order() default Ordered.LOWEST_PRECEDENCE;
-
-    @Target(value = {ElementType.METHOD, ElementType.ANNOTATION_TYPE})
-    @Retention(value = RetentionPolicy.RUNTIME)
-    @Inherited
-    @Documented
-    @interface List {
-        Lock4j[] value();
-    }
 }
