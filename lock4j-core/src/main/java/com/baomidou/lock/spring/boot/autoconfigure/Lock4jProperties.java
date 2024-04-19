@@ -52,10 +52,12 @@ public class Lock4jProperties {
      * 默认执行器，不设置默认取容器第一个(默认注入顺序，redisson>redisTemplate>zookeeper)
      */
     private Class<? extends LockExecutor> primaryExecutor;
+
     /**
      * 默认失败策略，不设置存在多个时默认根据PriorityOrdered、Ordered排序规则选择|注入顺序选择
      */
     private Class<? extends LockFailureStrategy> primaryFailureStrategy;
+
     /**
      * 默认key生成策略，不设置存在多个时默认根据PriorityOrdered、Ordered排序规则选择|注入顺序选择
      */
@@ -65,4 +67,9 @@ public class Lock4jProperties {
      * 锁key前缀
      */
     private String lockKeyPrefix = "lock4j";
+
+    /**
+     * 是否允许将非可执行表达式作为字符串
+     */
+    private boolean allowedMakeNonExecutableExpressionsAsString = true;
 }
