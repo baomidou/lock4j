@@ -26,6 +26,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Role;
 import org.springframework.core.Ordered;
 
@@ -72,9 +73,20 @@ public class LockAutoConfiguration {
     }
 
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+    @Primary
     @Bean
     @ConditionalOnMissingBean
-    public LockFailureStrategy lockFailureStrategy() {
+    public AbortLockFailureStrategy abortLockFailureStrategy(
+        MethodBasedExpressionEvaluator methodBasedExpressionEvaluator, Lock4jProperties lock4jProperties) {
+        AbortLockFailureStrategy strategy = new AbortLockFailureStrategy(methodBasedExpressionEvaluator);
+        strategy.setAllowedMakeNonExecutableExpressionsAsString(lock4jProperties.isAllowedMakeNonExecutableExpressionsAsString());
+        return strategy;
+    }
+
+    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+    @Bean
+    @ConditionalOnMissingBean
+    public DefaultLockFailureStrategy defaultLockFailureStrategy() {
         return new DefaultLockFailureStrategy();
     }
 

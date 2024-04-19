@@ -54,12 +54,16 @@ public class SpelMethodBasedExpressionEvaluator
      * @param arguments 调用参数
      * @param expression 表达式
      * @param resultType 返回值类型
+     * @param variables 表达式中的变量
      * @return 表达式执行结果
      */
     @Override
     public <T> T getValue(
-        Method method, Object[] arguments, String expression, Class<T> resultType) {
+        Method method, Object[] arguments, String expression, Class<T> resultType, @NonNull Map<String, Object> variables) {
         EvaluationContext context = createEvaluationContext(method, arguments);
+        if (!variables.isEmpty()) {
+            variables.forEach(context::setVariable);
+        }
         Expression exp = parseExpression(expression, expressionParser);
         return exp.getValue(context, resultType);
     }
@@ -74,14 +78,16 @@ public class SpelMethodBasedExpressionEvaluator
     /**
      * 解析表达式
      *
-     * @param exp 表达式
+     * @param expression 表达式
      * @param parser 表达式解析器
      * @return 表达式对象
      */
-    protected Expression parseExpression(String exp, ExpressionParser parser) {
-        exp = embeddedValueResolver.resolveStringValue(exp);
-        Assert.notNull(exp, "Expression must not be null: " + exp);
-        return expressionCache.computeIfAbsent(exp, parser::parseExpression);
+    protected Expression parseExpression(String expression, ExpressionParser parser) {
+        return expressionCache.computeIfAbsent(expression, exp -> {
+            exp = embeddedValueResolver.resolveStringValue(exp);
+            Assert.notNull(exp, "Expression must not be null: " + exp);
+            return parser.parseExpression(exp);
+        });
     }
 
     @Override

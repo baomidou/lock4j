@@ -19,13 +19,21 @@ package com.baomidou.lock;
 import java.lang.reflect.Method;
 
 /**
+ * 当加锁失败时的处理策略
+ *
  * @author zengzhihong
  */
 public interface LockFailureStrategy {
 
     /**
-     * 锁失败事件
+     * 当加锁失败时的处理策略
+     *
+     * @param key 用于获取锁的key
+     * @param method 方法
+     * @param arguments 方法参数
+     * @throws Exception 处理过程中可能抛出的异常，如果抛出异常则会终止方法执行
      */
-    void onLockFailure(String key, Method method, Object[] arguments);
+    void onLockFailure(String key, Method method, Object[] arguments) throws Exception;
 
+    // TODO 释放锁失败时也应该进行处理，具体参见：https://gitee.com/baomidou/lock4j/issues/I4LG1U
 }
