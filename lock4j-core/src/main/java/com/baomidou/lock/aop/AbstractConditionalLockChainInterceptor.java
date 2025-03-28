@@ -15,9 +15,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * <p>支持多个{@link Lock4j}注解的锁操作拦截器，
- * 当执行时，将会遵循{@link Lock4j}注解的依次进行加锁和解锁操作。<br/>
- * 例如：<br/>
+ * <p>
+ * 支持多个{@link Lock4j}注解的锁操作拦截器，
+ * 当执行时，将会遵循{@link Lock4j}注解的依次进行加锁和解锁操作。
+ * 例如：
+ * 
  * <pre>
  *     &#064;Lock4j(key = "key1", order = 0)
  *     &#064;Lock4j(key = "key2, order = 1)
@@ -26,14 +28,19 @@ import java.util.stream.Collectors;
  *      // do something
  *     }
  * </pre>
+ * 
  * 当执行时，将依次加锁key1、key2、key3，执行完毕后依次解锁key1、key2、key3。
  *
- * <p><strong>中断</strong>
- * <p>多级锁操作链将根据某一环节是否未获取到锁而决定是否中断，若中断则会依次解锁已加锁的锁。
+ * <p>
+ * <strong>中断</strong>
+ * <p>
+ * 多级锁操作链将根据某一环节是否未获取到锁而决定是否中断，若中断则会依次解锁已加锁的锁。
  * 比如，若获取key3锁时失败，则会调用失败处理策略，随后解锁key2，与key1。
  *
- * <p><strong>条件</strong>
- * <p>多级锁的条件是彼此独立的，
+ * <p>
+ * <strong>条件</strong>
+ * <p>
+ * 多级锁的条件是彼此独立的，
  * 比如，若Key2的表达式执行结果为true时，其他表达式执行结果为false，此时将会正常获取Key1与Key2的锁。
  * 同理，若Key2的表达式为false，Key3的表达式为true，此时将会正常获取Key1与Key3的锁
  *
@@ -47,7 +54,7 @@ public abstract class AbstractConditionalLockChainInterceptor extends AbstractCo
      * @param methodBasedExpressionEvaluator 方法调用表达式执行器
      */
     protected AbstractConditionalLockChainInterceptor(
-        MethodBasedExpressionEvaluator methodBasedExpressionEvaluator) {
+            MethodBasedExpressionEvaluator methodBasedExpressionEvaluator) {
         super(methodBasedExpressionEvaluator);
     }
 
@@ -61,10 +68,11 @@ public abstract class AbstractConditionalLockChainInterceptor extends AbstractCo
     @Nullable
     @Override
     protected LockOps resolveLockOps(MethodInvocation invocation) {
-        Set<LockOps> ops = AnnotatedElementUtils.findMergedRepeatableAnnotations(invocation.getMethod(), Lock4j.class).stream()
-            .map(this::createLockOps)
-            .sorted(AnnotationAwareOrderComparator.INSTANCE)
-            .collect(Collectors.toCollection(LinkedHashSet::new));
+        Set<LockOps> ops = AnnotatedElementUtils.findMergedRepeatableAnnotations(invocation.getMethod(), Lock4j.class)
+                .stream()
+                .map(this::createLockOps)
+                .sorted(AnnotationAwareOrderComparator.INSTANCE)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
         if (CollectionUtils.isEmpty(ops)) {
             return null;
         }
@@ -97,14 +105,14 @@ public abstract class AbstractConditionalLockChainInterceptor extends AbstractCo
     protected static class LockOpsChain extends AbstractLockOpsDelegate {
         @Nullable
         private LockOpsChain next;
+
         public LockOpsChain(LockOps delegate) {
             super(delegate);
         }
+
         @Override
         public MethodInvocation attach(MethodInvocation invocation) {
-            return Objects.isNull(next) ?
-                delegate.attach(invocation) :
-                delegate.attach(next.attach(invocation));
+            return Objects.isNull(next) ? delegate.attach(invocation) : delegate.attach(next.attach(invocation));
         }
     }
 }

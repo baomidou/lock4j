@@ -20,7 +20,7 @@ import java.lang.annotation.*;
  */
 @AbortLockFailureStrategy.Options
 @Lock4j(failStrategy = AbortLockFailureStrategy.class)
-@Target(value = {ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+@Target(value = { ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Retention(value = RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
@@ -54,7 +54,8 @@ public @interface LockWithDefault {
 
     /**
      * @return 过期时间 单位：毫秒
-     * <pre>
+     * 
+     *         <pre>
      *     过期时间一定是要长于业务的执行时间. 未设置则为默认时间30秒 默认值：{@link Lock4jProperties#expire}
      * </pre>
      */
@@ -62,14 +63,16 @@ public @interface LockWithDefault {
 
     /**
      * @return 获取锁超时时间 单位：毫秒
-     * <pre>
+     * 
+     *         <pre>
      *     结合业务,建议该时间不宜设置过长,特别在并发高的情况下. 未设置则为默认时间3秒 默认值：{@link Lock4jProperties#acquireTimeout}
      * </pre>
      */
     long acquireTimeout() default -1;
 
     /**
-     * 业务方法执行完后（方法内抛异常也算执行完）自动释放锁，如果为false，锁将不会自动释放直至到达过期时间才释放 {@link com.baomidou.lock.annotation.Lock4j#expire()}
+     * 业务方法执行完后（方法内抛异常也算执行完）自动释放锁，如果为false，锁将不会自动释放直至到达过期时间才释放
+     * {@link com.baomidou.lock.annotation.Lock4j#expire()}
      *
      * @return 是否自动释放锁
      */
@@ -90,34 +93,34 @@ public @interface LockWithDefault {
     int order() default Ordered.LOWEST_PRECEDENCE;
 
     /**
-     * <p>抛出异常的错误消息。
+     * <p>
+     * 抛出异常的错误消息。
      *
-     * <p>错误信息支持 SpEL 表达式，你可以在表达式中引用上下文参数：
+     * <p>
+     * 错误信息支持 SpEL 表达式，你可以在表达式中引用上下文参数：
      * <ul>
-     *     <li>通过{@code #key} 引用获取失败的锁的key；</li>
-     *     <li>通过{@code #root} 引用方法对象；</li>
-     *     <li>通过{@code #参数名}或{@code #p参数下标}引用方法的调用参数；</li>
+     * <li>通过{@code #key} 引用获取失败的锁的key；</li>
+     * <li>通过{@code #root} 引用方法对象；</li>
+     * <li>通过{@code #参数名}或{@code #p参数下标}引用方法的调用参数；</li>
      * </ul>
      *
      * @return String
      * @see AbortLockFailureStrategy.Options#lockFailureMessage
      */
-    @AliasFor(
-        annotation = AbortLockFailureStrategy.Options.class,
-        attribute = "lockFailureMessage"
-    )
+    @AliasFor(annotation = AbortLockFailureStrategy.Options.class, attribute = "lockFailureMessage")
     String lockFailureMessage() default AbortLockFailureStrategy.DEFAULT_EXCEPTION_MESSAGE;
 
     /**
-     * <p>获取锁失败时，抛出的异常。 <br/>
+     * <p>
+     * 获取锁失败时，抛出的异常。
+     * </p>
+     * <p>
      * 异常类必须提供一个无参构造函数，或者提供一个接受{@code String}类型参数的构造函数。
+     * </p>
      *
      * @return String
      * @see AbortLockFailureStrategy.Options#lockFailureException
      */
-    @AliasFor(
-        annotation = AbortLockFailureStrategy.Options.class,
-        attribute = "lockFailureException"
-    )
+    @AliasFor(annotation = AbortLockFailureStrategy.Options.class, attribute = "lockFailureException")
     Class<? extends Exception> lockFailureException() default LockFailureException.class;
 }

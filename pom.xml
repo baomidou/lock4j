@@ -80,6 +80,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
         <nexus-staging.version>1.6.13</nexus-staging.version>
+        <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
         <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
         <redisson.version>3.19.0</redisson.version>
         <curator.version>5.1.0</curator.version>

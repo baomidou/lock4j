@@ -16,8 +16,12 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * <p>当加锁失败时，抛出异常以终止方法执行。 <br/>
+ * <p>
+ * 当加锁失败时，抛出异常以终止方法执行。
+ * </p>
+ * <p>
  * 该策略可以通过{@link Options}注解来指定当失败时要抛出的异常和异常信息。
+ * </p>
  *
  * @author huangchengxing
  * @see Options
@@ -66,7 +70,7 @@ public class AbortLockFailureStrategy implements LockFailureStrategy {
     @Override
     public void onLockFailure(String key, Method method, Object[] arguments) throws Exception {
         exceptionHandlerCaches.computeIfAbsent(method, this::resolveExceptionHandler)
-            .handle(key, method, arguments);
+                .handle(key, method, arguments);
     }
 
     /**
@@ -78,30 +82,29 @@ public class AbortLockFailureStrategy implements LockFailureStrategy {
     @NonNull
     protected FailureHandler resolveExceptionHandler(Method method) {
         Options options = AnnotatedElementUtils.findMergedAnnotation(method, Options.class);
-        return Objects.isNull(options) ?
-            defaultExceptionFactory : new FailureMessageFailureHandler(options.lockFailureException(), options.lockFailureMessage());
+        return Objects.isNull(options) ? defaultExceptionFactory
+                : new FailureMessageFailureHandler(options.lockFailureException(), options.lockFailureMessage());
     }
 
     /**
      * 获取异常信息
      *
-     * @param key 获取失败的锁的key
-     * @param method 方法
-     * @param arguments 调用参数
+     * @param key        获取失败的锁的key
+     * @param method     方法
+     * @param arguments  调用参数
      * @param expression 用于获取异常信息的表达式
      * @return 异常信息
      */
     @Nullable
     protected final String resolveMessage(
-        String key, Method method, Object[] arguments, String expression) {
+            String key, Method method, Object[] arguments, String expression) {
         // 若未指定错误信息，则返回默认的异常信息
         if (!StringUtils.hasText(expression)) {
             return DEFAULT_EXCEPTION_MESSAGE;
         }
         try {
             return methodBasedExpressionEvaluator.getValue(
-                method, arguments, expression, String.class, Collections.singletonMap(KEY_NAME, key)
-            );
+                    method, arguments, expression, String.class, Collections.singletonMap(KEY_NAME, key));
         } catch (Exception ex) {
             if (allowedMakeNonExecutableExpressionsAsString) {
                 return expression;
@@ -150,11 +153,11 @@ public class AbortLockFailureStrategy implements LockFailureStrategy {
                 }
             }
             try {
-                return constructor.getParameterCount() > 0 ?
-                    constructor.newInstance(message) : constructor.newInstance();
+                return constructor.getParameterCount() > 0 ? constructor.newInstance(message)
+                        : constructor.newInstance();
             } catch (Exception e) {
                 throw new IllegalStateException("创建异常实例失败，指定的异常类型："
-                    + constructor.getDeclaringClass().getName() + "是否可以被实例化？", e);
+                        + constructor.getDeclaringClass().getName() + "是否可以被实例化？", e);
             }
         }
 
@@ -165,7 +168,7 @@ public class AbortLockFailureStrategy implements LockFailureStrategy {
                 constr = ClassUtils.getConstructorIfAvailable(exceptionType);
             }
             Assert.notNull(constr, "异常类型[" + exceptionType.getName() +
-                "]必须有一个无参构造函数，或有有一个接受String类型参数的造函数");
+                    "]必须有一个无参构造函数，或有有一个接受String类型参数的造函数");
             if (!constr.isAccessible()) {
                 ReflectionUtils.makeAccessible(constr);
             }
@@ -178,20 +181,22 @@ public class AbortLockFailureStrategy implements LockFailureStrategy {
      *
      * @author huangchengxing
      */
-    @Target(value = {ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+    @Target(value = { ElementType.METHOD, ElementType.ANNOTATION_TYPE })
     @Retention(value = RetentionPolicy.RUNTIME)
     @Inherited
     @Documented
     public @interface Options {
 
         /**
-         * <p>抛出异常的错误消息。
+         * <p>
+         * 抛出异常的错误消息。
          *
-         * <p>错误信息支持 SpEL 表达式，你可以在表达式中引用上下文参数：
+         * <p>
+         * 错误信息支持 SpEL 表达式，你可以在表达式中引用上下文参数：
          * <ul>
-         *     <li>通过{@code #key} 引用获取失败的锁的key；</li>
-         *     <li>通过{@code #root} 引用方法对象；</li>
-         *     <li>通过{@code #参数名}或{@code #p参数下标}引用方法的调用参数；</li>
+         * <li>通过{@code #key} 引用获取失败的锁的key；</li>
+         * <li>通过{@code #root} 引用方法对象；</li>
+         * <li>通过{@code #参数名}或{@code #p参数下标}引用方法的调用参数；</li>
          * </ul>
          *
          * @return 错误消息
@@ -199,8 +204,12 @@ public class AbortLockFailureStrategy implements LockFailureStrategy {
         String lockFailureMessage() default DEFAULT_EXCEPTION_MESSAGE;
 
         /**
-         * <p>获取锁失败时，抛出的异常。 <br/>
+         * <p>
+         * 获取锁失败时，抛出的异常。
+         * </p>
+         * <p>
          * 异常类必须提供一个无参构造函数，或者提供一个接受{@code String}类型参数的构造函数。
+         * </p>
          *
          * @return 异常类型
          */

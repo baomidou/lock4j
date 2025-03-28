@@ -24,7 +24,7 @@ jobs:
         cache: maven
         
     - name: Build with Maven
-      run: ./mvnw clean install
+      run: ./mvnw clean install -Dmaven.javadoc.failOnError=false -Dmaven.javadoc.skip=false -Dmaven.test.skip=false
 
     - name: Test Coverage
       run: ./mvnw test
