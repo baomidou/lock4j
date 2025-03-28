@@ -13,6 +13,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - name: Grant execute permission for mvnw
+      run: chmod +x mvnw
+    
     - name: Set up JDK 8
       uses: actions/setup-java@v3
       with:
@@ -24,7 +27,7 @@ jobs:
       run: ./mvnw clean install
 
     - name: Test Coverage
-      run: ./mvnw clean test
+      run: ./mvnw test
 
     # 上传测试报告（如果需要的话）
     - name: Upload coverage to Codecov
