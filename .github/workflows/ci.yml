@@ -26,8 +26,8 @@ jobs:
     - name: Build with Maven
       run: ./mvnw clean install -Dmaven.javadoc.failOnError=false -Dmaven.javadoc.skip=false -Dmaven.test.skip=false
 
-    - name: Test Coverage
-      run: ./mvnw test
+    - name: Run tests and generate coverage report
+      run: ./mvnw test org.jacoco:jacoco-maven-plugin:report
 
     # 上传测试报告（如果需要的话）
     - name: Upload coverage to Codecov
