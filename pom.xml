@@ -23,6 +23,7 @@
         <module>lock4j-redis-template-spring-boot-starter</module>
         <module>lock4j-redisson-spring-boot-starter</module>
         <module>lock4j-zookeeper-spring-boot-starter</module>
+        <module>lock4j-etcd-spring-boot-starter</module>
         <module>lock4j-test</module>
     </modules>
 
@@ -82,6 +83,7 @@
         <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
         <redisson.version>3.19.0</redisson.version>
         <curator.version>5.1.0</curator.version>
+        <jetcd.version>0.5.11</jetcd.version>
     </properties>
 
     <dependencies>
