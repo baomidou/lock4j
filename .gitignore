@@ -23,3 +23,40 @@ target/
 /dist/
 /nbdist/
 /.nb-gradle/
+
+### VS Code ###
+.vscode/
+*.code-workspace
+
+### macOS ###
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+### Windows ###
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+
+### Log files ###
+*.log
+
+### Temporary files ###
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+### Backup files ###
+*.bak
+*.backup

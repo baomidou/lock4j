@@ -23,6 +23,7 @@
         <module>lock4j-redis-template-spring-boot-starter</module>
         <module>lock4j-redisson-spring-boot-starter</module>
         <module>lock4j-zookeeper-spring-boot-starter</module>
+        <module>lock4j-etcd-spring-boot-starter</module>
         <module>lock4j-test</module>
     </modules>
 
