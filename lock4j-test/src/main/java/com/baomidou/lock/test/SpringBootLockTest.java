@@ -25,9 +25,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.math.BigDecimal;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("ALL")
 @SpringBootTest(classes = SpringBootLockTest.class)
@@ -288,6 +291,32 @@ public class SpringBootLockTest {
             executorService.submit(task);
         }
         Thread.sleep(Long.MAX_VALUE);
+    }
+
+    @Test
+    public void autoRenewAndAutoReleaseLock() throws InterruptedException {
+        final BigDecimal payAmount = BigDecimal.valueOf(88L);
+        int totalUser = 5;
+        CountDownLatch countDownLatch = new CountDownLatch(totalUser);
+        ExecutorService executorService = Executors.newFixedThreadPool(totalUser);
+        Runnable task = new Runnable(){
+            @Override
+            public void run() {
+                try {
+                    userService.autoRenewAndAutoReleaseLock(payAmount);
+                } finally {
+                    countDownLatch.countDown();
+                }
+            }
+        };
+        for (long i = 0; i < totalUser; i++) {
+            executorService.submit(task);
+        }
+
+        TimeUnit.SECONDS.sleep(42);
+        userService.autoRenewAndAutoReleaseLock(payAmount);
+
+        countDownLatch.await();
     }
 
 }
