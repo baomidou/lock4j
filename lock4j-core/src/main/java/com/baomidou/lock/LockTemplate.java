@@ -118,8 +118,8 @@ public class LockTemplate implements InitializingBean {
     public void afterPropertiesSet() throws Exception {
 
         Assert.isTrue(properties.getAcquireTimeout() >= 0, "tryTimeout must least 0");
-        Assert.isTrue(properties.getExpire() >= -1, "expireTime must lease -1");
-        Assert.isTrue(properties.getRetryInterval() >= 0, "retryInterval must more than 0");
+        Assert.isTrue(properties.getExpire() >= -1, "expireTime must least -1");
+        Assert.isTrue(properties.getRetryInterval() >= 0, "retryInterval must least 0");
         Assert.hasText(properties.getLockKeyPrefix(), "lock key prefix must be not blank");
         Assert.notEmpty(executors, "executors must have at least one");
 
