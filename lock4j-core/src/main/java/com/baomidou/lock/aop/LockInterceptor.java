@@ -73,7 +73,7 @@ public class LockInterceptor implements InitializingBean,Lock4jMethodInterceptor
             LockOperation lockOperation = buildLockOperation(lock4j);
             String prefix = lock4jProperties.getLockKeyPrefix() + ":";
             prefix += StringUtils.hasText(lock4j.name()) ? lock4j.name() :
-                    invocation.getMethod().getDeclaringClass().getName() + invocation.getMethod().getName();
+                    invocation.getMethod().getDeclaringClass().getName() + "." + invocation.getMethod().getName();
             String key = prefix + "#" + lockOperation.lockKeyBuilder.buildKey(invocation, lock4j.keys());
             lockInfo = lockTemplate.lock(key, lock4j.expire(), lock4j.acquireTimeout(), lock4j.executor());
             if (null != lockInfo) {
