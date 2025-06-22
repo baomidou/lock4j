@@ -25,19 +25,23 @@ import com.baomidou.lock.annotation.Lock4j;
 import com.baomidou.lock.annotation.RedissonLock;
 import com.baomidou.lock.executor.RedisTemplateLockExecutor;
 import com.baomidou.lock.executor.RedissonLockExecutor;
+import com.baomidou.lock.test.custom.CustomLockFailureStrategy;
 import com.baomidou.lock.test.custom.CustomLockFailureStrategy2;
 import com.baomidou.lock.test.custom.CustomLockKeyBuilder2;
 import com.baomidou.lock.test.model.User;
 import com.baomidou.lock.test.model.UserB;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
+@Slf4j
 @Service
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
 
     @Autowired
     LockTemplate lockTemplate;
@@ -229,6 +233,24 @@ public class UserServiceImpl implements UserService{
             Thread.sleep(3000);
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    @Lock4j(keys = {"'pay'", "#amount"},
+            expire = -1,
+//            executor = RedissonLockExecutor.class,
+            executor = RedisTemplateLockExecutor.class,
+            failStrategy = CustomLockFailureStrategy.class,
+            autoRelease = false)
+    public void autoRenewAndAutoReleaseLock(BigDecimal amount) {
+        log.info("================================================");
+        log.info("支付了{}元", amount.toPlainString());
+        log.info("================================================");
+        try {
+            TimeUnit.SECONDS.sleep(40);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
