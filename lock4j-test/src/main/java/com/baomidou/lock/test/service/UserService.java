@@ -19,6 +19,8 @@ package com.baomidou.lock.test.service;
 import com.baomidou.lock.annotation.RedisLock;
 import com.baomidou.lock.test.model.User;
 
+import java.math.BigDecimal;
+
 /**
  * @author zengzhihong
  */
@@ -56,4 +58,6 @@ public interface UserService {
     void customLockFailureStrategy();
 
     void customLockFailureStrategy2();
+
+    void autoRenewAndAutoReleaseLock(BigDecimal amount);
 }
